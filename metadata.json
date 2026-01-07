@@ -1,0 +1,5 @@
+{
+  "name": "Global Alliance Explorer",
+  "description": "An interactive world map visualizing major political and military alliances like NATO, G20, ASEAN, and historical pacts, featuring AI-generated geopolitical insights.",
+  "requestFramePermissions": []
+}
