@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   ComposableMap,
   Geographies,
@@ -9,6 +9,7 @@ import {
   ZoomableGroup
 } from 'react-simple-maps';
 import { ALLIANCES, GEO_URL } from '../constants';
+import { Loader2 } from 'lucide-react';
 
 interface WorldMapProps {
   selectedAllianceIds: string[];
@@ -17,6 +18,15 @@ interface WorldMapProps {
 }
 
 const WorldMap: React.FC<WorldMapProps> = ({ selectedAllianceIds, onCountryHover, onCountryClick }) => {
+  const [geoData, setGeoData] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(GEO_URL)
+      .then((response) => response.json())
+      .then((data) => setGeoData(data))
+      .catch((error) => console.error("Error loading map data:", error));
+  }, []);
+
   const selectedAlliances = useMemo(() => 
     ALLIANCES.filter(a => selectedAllianceIds.includes(a.id)), 
     [selectedAllianceIds]
@@ -43,6 +53,15 @@ const WorldMap: React.FC<WorldMapProps> = ({ selectedAllianceIds, onCountryHover
     }
   };
 
+  if (!geoData) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-slate-950">
+        <Loader2 className="animate-spin text-blue-500 mr-2" />
+        <span className="text-slate-400 text-sm">Loading Geographies...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full relative bg-slate-950">
       <ComposableMap
@@ -55,7 +74,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ selectedAllianceIds, onCountryHover
         <ZoomableGroup center={[0, 20]} zoom={1}>
           <Sphere stroke="#1e293b" strokeWidth={0.5} id="sphere" fill="transparent" />
           <Graticule stroke="#1e293b" strokeWidth={0.5} />
-          <Geographies geography={GEO_URL}>
+          <Geographies geography={geoData}>
             {({ geographies }) =>
               geographies.map((geo) => {
                 const iso = geo.properties.iso_a3 || geo.id;

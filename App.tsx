@@ -1,10 +1,10 @@
 
-import React, { useState, useMemo, useTransition, Suspense } from 'react';
+import React, { useState, useTransition, Suspense } from 'react';
 import { ALLIANCES } from './constants';
 import WorldMap from './components/WorldMap';
 import AlliancePanel from './components/AlliancePanel';
 import CountryDetailModal from './components/CountryDetailModal';
-import { Menu, ChevronRight, Globe, Layers, Trash2, GitCompare, Loader2 } from 'lucide-react';
+import { ChevronRight, Globe, Layers, Trash2, GitCompare, Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const [selectedAllianceIds, setSelectedAllianceIds] = useState<string[]>([]);
@@ -113,8 +113,9 @@ const App: React.FC = () => {
         {/* Map Section */}
         <div className="flex-1 relative">
           <Suspense fallback={
-            <div className="w-full h-full flex items-center justify-center bg-slate-950 text-slate-500">
-              <Loader2 className="animate-spin mr-2" /> Loading Global Topology...
+            <div className="w-full h-full flex items-center justify-center bg-slate-950">
+               <Loader2 className="animate-spin text-blue-500 mr-2" />
+               <span className="text-slate-400 text-sm">Loading Geographies...</span>
             </div>
           }>
             <WorldMap 
@@ -139,8 +140,9 @@ const App: React.FC = () => {
           )}
 
           {isPending && (
-            <div className="absolute top-4 right-4 p-2 bg-blue-500/20 text-blue-400 rounded-md flex items-center gap-2 text-xs font-medium border border-blue-500/30 backdrop-blur-md">
-              <Loader2 size={12} className="animate-spin" /> Updating Map...
+            <div className="absolute top-4 right-4 p-2 bg-blue-600/20 text-blue-400 rounded border border-blue-500/30 text-xs font-bold animate-pulse backdrop-blur-md">
+              <Loader2 className="inline-block animate-spin mr-2 h-3 w-3" />
+              Processing...
             </div>
           )}
         </div>
