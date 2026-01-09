@@ -1,5 +1,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
+import countries from 'i18n-iso-countries';
+import enLocale from 'i18n-iso-countries/langs/en.json';
 import {
   ComposableMap,
   Geographies,
@@ -10,6 +12,9 @@ import {
 } from 'react-simple-maps';
 import { ALLIANCES, GEO_URL } from '../constants';
 import { Loader2 } from 'lucide-react';
+
+// Register locale so numeric -> alpha3 conversion works
+countries.registerLocale(enLocale);
 
 interface WorldMapProps {
   selectedAllianceIds: string[];
@@ -33,6 +38,25 @@ const WorldMap: React.FC<WorldMapProps> = ({ selectedAllianceIds, onCountryHover
   );
 
   const isMultiSelect = selectedAllianceIds.length > 1;
+
+  const getIsoCode = (geo: any) => {
+    const propsIso = geo.properties?.iso_a3 || geo.properties?.ISO_A3;
+    if (propsIso && typeof propsIso === 'string') return propsIso.toUpperCase();
+
+    if (typeof geo.id === 'string' && geo.id.length === 3) {
+      return geo.id.toUpperCase();
+    }
+
+    const isoFromNumeric = geo.id ? countries.numericToAlpha3(String(geo.id)) : null;
+    if (isoFromNumeric) return isoFromNumeric.toUpperCase();
+
+    const isoFromName = geo.properties?.name
+      ? countries.getAlpha3Code(geo.properties.name, 'en')
+      : null;
+    if (isoFromName) return isoFromName.toUpperCase();
+
+    return null;
+  };
 
   const getCountryColor = (iso: string) => {
     if (selectedAllianceIds.length === 0) return "#334155";
@@ -77,8 +101,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ selectedAllianceIds, onCountryHover
           <Geographies geography={geoData}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const iso = geo.properties.iso_a3 || geo.id;
-                const fillColor = getCountryColor(iso);
+                const iso = getIsoCode(geo);
+                const fillColor = iso ? getCountryColor(iso) : "#334155";
                 
                 return (
                   <Geography
