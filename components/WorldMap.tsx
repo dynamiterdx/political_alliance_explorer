@@ -28,7 +28,35 @@ const WorldMap: React.FC<WorldMapProps> = ({ selectedAllianceIds, onCountryHover
   useEffect(() => {
     fetch(GEO_URL)
       .then((response) => response.json())
-      .then((data) => setGeoData(data))
+      .then((data) => {
+        const countriesObject = data?.objects?.countries;
+        if (countriesObject?.geometries) {
+          // Normalize ISO codes into properties and ids for reliable coloring
+          const geometries = countriesObject.geometries.map((geo: any) => {
+            const iso = getIsoCode(geo);
+            return {
+              ...geo,
+              id: iso || geo.id,
+              properties: {
+                ...geo.properties,
+                iso_a3: iso
+              }
+            };
+          });
+          setGeoData({
+            ...data,
+            objects: {
+              ...data.objects,
+              countries: {
+                ...countriesObject,
+                geometries
+              }
+            }
+          });
+        } else {
+          setGeoData(data);
+        }
+      })
       .catch((error) => console.error("Error loading map data:", error));
   }, []);
 
@@ -40,15 +68,20 @@ const WorldMap: React.FC<WorldMapProps> = ({ selectedAllianceIds, onCountryHover
   const isMultiSelect = selectedAllianceIds.length > 1;
 
   const getIsoCode = (geo: any) => {
-    const propsIso = geo.properties?.iso_a3 || geo.properties?.ISO_A3;
+    const propsIso = geo.properties?.iso_a3 || geo.properties?.ISO_A3 || geo.properties?.ISO_A3_EH;
     if (propsIso && typeof propsIso === 'string') return propsIso.toUpperCase();
 
-    if (typeof geo.id === 'string' && geo.id.length === 3) {
-      return geo.id.toUpperCase();
+    const idStr = geo.id !== undefined ? String(geo.id) : null;
+    if (idStr) {
+      // Some topojson files store numeric ISO codes as strings (e.g. "840")
+      if (/^\\d+$/.test(idStr)) {
+        const isoFromNumeric = countries.numericToAlpha3(idStr);
+        if (isoFromNumeric) return isoFromNumeric.toUpperCase();
+      }
+      if (idStr.length === 3 && !/^\\d+$/.test(idStr)) {
+        return idStr.toUpperCase();
+      }
     }
-
-    const isoFromNumeric = geo.id ? countries.numericToAlpha3(String(geo.id)) : null;
-    if (isoFromNumeric) return isoFromNumeric.toUpperCase();
 
     const isoFromName = geo.properties?.name
       ? countries.getAlpha3Code(geo.properties.name, 'en')
