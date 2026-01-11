@@ -74,6 +74,12 @@ src/
     npm run dev
     ```
 
+## Author
+
+Archit Mishra  
+Bengaluru, India  
+architmishrapro@gmail.com
+
 ## 🗺️ Data Sources
 
 *   **Map Geometry**: Low-resolution World GeoJSON (sourced from GitHub for demo purposes).

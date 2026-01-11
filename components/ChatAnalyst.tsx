@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, RefreshCw } from 'lucide-react';
+import { Send, Bot, User, Loader2, RefreshCw, ChevronRight } from 'lucide-react';
 import { ChatMessage, GeopoliticalState } from '../types';
 import * as GeminiService from '../services/geminiService';
 
 interface ChatAnalystProps {
   currentState: GeopoliticalState;
+  onCollapse: () => void;
 }
 
-const ChatAnalyst: React.FC<ChatAnalystProps> = ({ currentState }) => {
+const ChatAnalyst: React.FC<ChatAnalystProps> = ({ currentState, onCollapse }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'init',
@@ -96,15 +97,28 @@ const ChatAnalyst: React.FC<ChatAnalystProps> = ({ currentState }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-geo-panel border-l border-slate-700 w-96 shadow-xl z-20">
+    <div className="flex flex-col h-full bg-geo-panel border-l border-slate-700 shadow-xl">
       {/* Header */}
       <div className="p-4 border-b border-slate-700 bg-slate-900/50 flex items-center gap-2">
-        <Bot className="text-geo-accent w-5 h-5" />
-        <h2 className="font-semibold text-slate-200">Analyst Link</h2>
-        <div className="ml-auto flex items-center gap-1 text-xs text-geo-success">
+        <div className="flex items-center gap-2">
+          <Bot className="text-geo-accent w-5 h-5" />
+          <h2 className="font-semibold text-slate-200">Analyst Link</h2>
+        </div>
+        <div className="ml-auto flex items-center gap-2 text-xs text-geo-success">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             Live
         </div>
+        <button
+          onClick={onCollapse}
+          className="ml-3 px-3 py-1.5 rounded-md bg-slate-800/60 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2 text-xs"
+          title="Collapse analyst"
+        >
+          <span className="w-6 h-6 rounded-full bg-geo-accent/15 border border-geo-accent/30 flex items-center justify-center text-geo-accent text-[10px] font-semibold">
+            AI
+          </span>
+          <span className="hidden sm:inline font-semibold">Hide</span>
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Messages */}

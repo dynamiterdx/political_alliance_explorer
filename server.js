@@ -1,21 +1,36 @@
 // server.js
 // Run this with: node server.js
-// Dependencies: npm install express cors ioredis
+// Dependencies: npm install express cors ioredis dotenv
 
-const express = require('express');
-const cors = require('cors');
-const Redis = require('ioredis');
+import express from 'express';
+import cors from 'cors';
+import Redis from 'ioredis';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = 3001;
 
 // --- SECURE SERVER-SIDE CONFIGURATION ---
 // Connection to your Managed Redis instance
+const {
+  REDIS_HOST,
+  REDIS_PORT,
+  REDIS_USERNAME = 'default',
+  REDIS_PASSWORD
+} = process.env;
+
+if (!REDIS_HOST || !REDIS_PORT || !REDIS_PASSWORD) {
+  console.error('❌ Missing Redis environment variables. Please set REDIS_HOST, REDIS_PORT, REDIS_USERNAME, and REDIS_PASSWORD in .env');
+  process.exit(1);
+}
+
 const redis = new Redis({
-  host: 'redis-18740.c321.us-east-1-2.ec2.cloud.redislabs.com',
-  port: 18740,
-  username: 'default', // Explicitly set username for Redis ACL compatibility
-  password: 'QmJT1ehLLWijoPo4tvVphniBD6ozuVsA',
+  host: REDIS_HOST,
+  port: Number(REDIS_PORT),
+  username: REDIS_USERNAME, // Explicitly set username for Redis ACL compatibility
+  password: REDIS_PASSWORD,
   connectTimeout: 10000,
   // If your managed instance requires TLS, uncomment the line below:
   // tls: {}, 
@@ -93,6 +108,6 @@ app.post('/api/cache', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`GeoSight Cache Proxy running on http://localhost:${PORT}`);
-  console.log('Targeting Redis: redis-18740.c321.us-east-1-2.ec2.cloud.redislabs.com');
+  console.log(`Targeting Redis: ${REDIS_HOST}:${REDIS_PORT}`);
   console.log('Ensure you have installed dependencies: npm install express cors ioredis');
 });

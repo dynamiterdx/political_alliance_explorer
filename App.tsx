@@ -10,7 +10,7 @@ import { GeoJSONData, GeoJSONFeature, GeopoliticalState, LayerType, Alliance, Co
 import { getGeopoliticalState, HISTORICAL_DATA } from './services/dataService';
 import * as GeminiService from './services/geminiService';
 import * as CacheService from './services/cacheService';
-import { Globe, Menu, Server, WifiOff } from 'lucide-react';
+import { Globe, Server, WifiOff, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const App: React.FC = () => {
   const [geoData, setGeoData] = useState<GeoJSONData | null>(null);
@@ -202,14 +202,27 @@ const App: React.FC = () => {
                 {cacheStatus === 'active' ? "SECURE CACHE" : "LOCAL CACHE"}
                 <span className={`w-2 h-2 rounded-full ${cacheStatus === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
             </div>
+
+            {/* Author credit - subtle pill */}
+            <div className="hidden md:flex items-center gap-2 text-[11px] text-slate-400 bg-slate-900/60 border border-slate-700 rounded-full px-3 py-1 shadow-sm">
+                <div className="w-7 h-7 rounded-full bg-geo-accent/15 border border-geo-accent/40 flex items-center justify-center text-geo-accent font-semibold text-xs">
+                    AM
+                </div>
+                <div className="flex flex-col leading-tight">
+                    <span className="text-slate-200 font-semibold">Archit Mishra</span>
+                    <div className="flex items-center gap-2">
+                        <span>Bengaluru, India</span>
+                        <a 
+                            href="mailto:architmishrapro@gmail.com" 
+                            className="text-geo-accent hover:text-white transition-colors"
+                        >
+                            architmishrapro@gmail.com
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <button 
-            onClick={() => setIsChatOpen(!isChatOpen)}
-            className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-400"
-        >
-            <Menu className="w-5 h-5" />
-        </button>
       </div>
 
       {/* Main Content Area */}
@@ -272,9 +285,35 @@ const App: React.FC = () => {
         )}
       </div>
 
-      {isChatOpen && (
-        <ChatAnalyst currentState={currentState} />
-      )}
+      {/* Right Sidebar: Chat Analyst with collapsible animation */}
+      <div 
+        className={`absolute top-14 right-0 bottom-0 transition-all duration-300 z-30 flex ${
+          isChatOpen ? 'w-96' : 'w-10'
+        }`}
+      >
+        <div className={`flex-1 bg-geo-panel/95 backdrop-blur-md border-l border-slate-700 shadow-2xl overflow-hidden ${isChatOpen ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}>
+          {isChatOpen && (
+            <ChatAnalyst 
+              currentState={currentState} 
+              onCollapse={() => setIsChatOpen(false)} 
+            />
+          )}
+        </div>
+
+        {/* Toggle handle with label/icon when collapsed */}
+        {!isChatOpen && (
+          <button
+            onClick={() => setIsChatOpen(true)}
+            className="absolute top-4 right-full mr-2 bg-geo-panel/90 text-slate-300 px-2 py-1.5 rounded-md border border-slate-700 hover:text-white hover:bg-slate-700 transition-colors shadow-lg z-40 pointer-events-auto flex items-center gap-2"
+          >
+            <div className="flex items-center gap-1">
+              <span className="w-6 h-6 rounded-full bg-geo-accent/15 border border-geo-accent/30 flex items-center justify-center text-geo-accent text-xs font-semibold">AI</span>
+              <span className="text-xs font-semibold hidden sm:inline">Analyst</span>
+            </div>
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };
