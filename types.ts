@@ -1,26 +1,58 @@
+export interface GeoJSONFeature {
+  type: string;
+  id?: string;
+  properties: {
+    name: string;
+    id?: string;
+    iso_a3?: string;
+    [key: string]: any;
+  };
+  geometry: {
+    type: string;
+    coordinates: any[];
+  };
+}
+
+export interface GeoJSONData {
+  type: string;
+  features: GeoJSONFeature[];
+}
+
+export enum LayerType {
+  ALLIANCES = 'ALLIANCES',
+  CONFLICTS = 'CONFLICTS',
+  ECONOMIC = 'ECONOMIC'
+}
 
 export interface Alliance {
   id: string;
   name: string;
-  fullName: string;
-  description: string;
-  members: string[]; // ISO 3166-1 alpha-3 codes
+  members: string[]; // ISO A3 codes
   color: string;
-  type: 'Political' | 'Military' | 'Economic' | 'Mixed';
-  yearFounded: number;
+  description: string;
+  type: string;      // e.g., "Military", "Economic", "Intelligence"
+  status: string;    // e.g., "Active", "Collapsing", "Forming"
 }
 
-export interface GeopoliticalInsight {
-  summary: string;
-  objectives: string[];
-  recentEvents: string;
-  challenges: string;
-}
-
-export interface CountryGeopoliticalData {
+export interface Conflict {
+  id: string;
   name: string;
-  capital: string;
-  population: string;
-  geopoliticalStance: string;
-  memberships: string[];
+  participants: string[]; // ISO A3 codes
+  intensity: number; // 0-1
+  description: string;
+  coordinates: [number, number]; // Lat/Lng center for visualization
+}
+
+export interface GeopoliticalState {
+  year: number;
+  alliances: Alliance[];
+  conflicts: Conflict[];
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  timestamp: Date;
+  isThinking?: boolean;
 }
