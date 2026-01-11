@@ -1,11 +1,15 @@
-import { GoogleGenAI, Chat } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { GeopoliticalState } from '../types';
 import * as CacheService from './cacheService';
 
 // Initialize the client. We use a function to ensure it picks up the latest environment variable
 // if injected after module load, though for standard .env files this works immediately.
 const getClient = () => {
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error('Missing Gemini API key. Set GEMINI_API_KEY or API_KEY in environment.');
+  }
+  return new GoogleGenAI({ apiKey });
 };
 
 const SYSTEM_INSTRUCTION = `
@@ -23,35 +27,26 @@ Guidelines:
 When answering, reference specific countries, alliances, and recent developments.
 `;
 
-let chatSession: Chat | null = null;
-
-export const initializeChat = async (initialContext: string) => {
-  const ai = getClient();
-  // Using gemini-3-flash-preview for speed and googleSearch tool capability
-  chatSession = ai.chats.create({
-    model: 'gemini-3-flash-preview',
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      tools: [{ googleSearch: {} }] // Enable grounding
-    }
-  });
-  
-  // Prime the chat with the current context (e.g., selected year)
-  if (initialContext) {
-    await chatSession.sendMessage({ message: `Context: ${initialContext}` });
-  }
-  
-  return chatSession;
-};
-
 export const sendMessage = async (message: string, contextState?: GeopoliticalState) => {
-  if (!chatSession) {
-    await initializeChat(contextState ? `Current Year View: ${contextState.year}` : '');
-  }
+  const ai = getClient();
+  const contextLine = contextState ? `Context: Year ${contextState.year}.` : '';
   
   try {
-    const result = await chatSession!.sendMessageStream({ message });
-    return result;
+    const result = await ai.models.generateContentStream({
+      model: 'gemini-3-flash-preview',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: `${SYSTEM_INSTRUCTION}\n\n${contextLine}\n\nUser: ${message}` }
+          ]
+        }
+      ],
+      config: {
+        tools: contextState?.year === 2024 ? [{ googleSearch: {} }] : []
+      }
+    });
+    return result.stream;
   } catch (error) {
     console.error("Gemini Chat Error:", error);
     throw error;
