@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Conflict, GeopoliticalState } from '../types';
 import * as GeminiService from '../services/geminiService';
 import { X, Flame, ShieldAlert, Loader2, Swords, RefreshCw } from 'lucide-react';
@@ -109,16 +110,10 @@ const ConflictInfoPanel: React.FC<ConflictInfoPanelProps> = ({ conflict, state, 
                         <span>Assessing battlefield dynamics...</span>
                     </div>
                 ) : (
-                    <div className="prose prose-invert prose-sm">
-                       {summary?.split('\n').map((line, i) => {
-                           if (line.startsWith('**') || line.includes('**')) {
-                               const parts = line.split('**');
-                               return <p key={i} className="mb-2">
-                                   {parts.map((part, idx) => idx % 2 === 1 ? <strong key={idx} className="text-white">{part}</strong> : part)}
-                               </p>
-                           }
-                           return <p key={i} className="mb-2">{line}</p>
-                       })}
+                    <div className="prose prose-invert prose-sm max-w-none">
+                        <ReactMarkdown>
+                            {summary || ''}
+                        </ReactMarkdown>
                     </div>
                 )}
             </div>

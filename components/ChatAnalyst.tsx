@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Send, Bot, User, Loader2, RefreshCw, ChevronRight } from 'lucide-react';
 import { ChatMessage, GeopoliticalState } from '../types';
 import * as GeminiService from '../services/geminiService';
@@ -138,7 +139,17 @@ const ChatAnalyst: React.FC<ChatAnalystProps> = ({ currentState, onCollapse }) =
                   : 'bg-slate-700 text-slate-200 border border-slate-600'
               }`}
             >
-              {msg.text || (msg.isThinking ? <Loader2 className="w-4 h-4 animate-spin text-slate-400" /> : '')}
+              {msg.isThinking ? (
+                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+              ) : msg.role === 'user' ? (
+                msg.text
+              ) : (
+                <div className="prose prose-invert prose-sm max-w-none">
+                  <ReactMarkdown>
+                    {msg.text || ''}
+                  </ReactMarkdown>
+                </div>
+              )}
             </div>
             <span className="text-[10px] text-slate-500 mt-1">
                 {msg.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}

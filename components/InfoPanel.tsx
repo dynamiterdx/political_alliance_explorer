@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { GeoJSONFeature, GeopoliticalState } from '../types';
 import * as GeminiService from '../services/geminiService';
 import { X, Globe, Shield, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
@@ -102,18 +103,10 @@ const InfoPanel: React.FC<InfoPanelProps> = ({ country, state, onClose }) => {
                         <span>Decrypting regional status...</span>
                     </div>
                 ) : (
-                    <div className="prose prose-invert prose-sm">
-                       {/* Simple markdown parser/renderer for the summary */}
-                       {summary?.split('\n').map((line, i) => {
-                           if (line.startsWith('**') || line.includes('**')) {
-                               // Very basic formatting for bold text
-                               const parts = line.split('**');
-                               return <p key={i} className="mb-2">
-                                   {parts.map((part, idx) => idx % 2 === 1 ? <strong key={idx} className="text-white">{part}</strong> : part)}
-                               </p>
-                           }
-                           return <p key={i} className="mb-2">{line}</p>
-                       })}
+                    <div className="prose prose-invert prose-sm max-w-none">
+                        <ReactMarkdown>
+                            {summary || ''}
+                        </ReactMarkdown>
                     </div>
                 )}
             </div>
