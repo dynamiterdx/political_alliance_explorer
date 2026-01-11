@@ -46,7 +46,7 @@ export const sendMessage = async (message: string, contextState?: GeopoliticalSt
         tools: contextState?.year === 2024 ? [{ googleSearch: {} }] : []
       }
     });
-    return result.stream;
+    return result; // Async iterable
   } catch (error) {
     console.error("Gemini Chat Error:", error);
     throw error;

@@ -74,13 +74,17 @@ const ChatAnalyst: React.FC<ChatAnalystProps> = ({ currentState, onCollapse }) =
       }]);
 
       for await (const chunk of stream) {
-        if (chunk.text) {
-             fullResponse += chunk.text;
-             setMessages(prev => prev.map(m => 
-                m.id === botMsgId 
-                ? { ...m, text: fullResponse, isThinking: false } 
-                : m
-             ));
+        // generateContentStream chunks expose text() helper; fall back to .text if present
+        const chunkText = typeof (chunk as any).text === 'function' 
+          ? (chunk as any).text() 
+          : (chunk as any).text || '';
+        if (chunkText) {
+          fullResponse += chunkText;
+          setMessages(prev => prev.map(m => 
+            m.id === botMsgId 
+            ? { ...m, text: fullResponse, isThinking: false } 
+            : m
+          ));
         }
       }
 
