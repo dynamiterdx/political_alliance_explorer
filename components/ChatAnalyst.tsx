@@ -104,21 +104,20 @@ const ChatAnalyst: React.FC<ChatAnalystProps> = ({ currentState, onCollapse }) =
           <Bot className="text-geo-accent w-5 h-5" />
           <h2 className="font-semibold text-slate-200">Analyst Link</h2>
         </div>
-        <div className="ml-auto flex items-center gap-2 text-xs text-geo-success">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            Live
+        <div className="ml-auto flex items-center gap-3 text-xs text-slate-400">
+            <div className="flex items-center gap-1 text-geo-success">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="font-semibold">Live</span>
+            </div>
+            <button
+              onClick={onCollapse}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-700 bg-slate-800/60 text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+              title="Collapse analyst"
+            >
+              <ChevronRight className="w-4 h-4" />
+              <span className="hidden sm:inline font-semibold">Collapse</span>
+            </button>
         </div>
-        <button
-          onClick={onCollapse}
-          className="ml-3 px-3 py-1.5 rounded-md bg-slate-800/60 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2 text-xs"
-          title="Collapse analyst"
-        >
-          <span className="w-6 h-6 rounded-full bg-geo-accent/15 border border-geo-accent/30 flex items-center justify-center text-geo-accent text-[10px] font-semibold">
-            AI
-          </span>
-          <span className="hidden sm:inline font-semibold">Hide</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
       </div>
 
       {/* Messages */}

@@ -10,7 +10,7 @@ import { GeoJSONData, GeoJSONFeature, GeopoliticalState, LayerType, Alliance, Co
 import { getGeopoliticalState, HISTORICAL_DATA } from './services/dataService';
 import * as GeminiService from './services/geminiService';
 import * as CacheService from './services/cacheService';
-import { Globe, Server, WifiOff, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Globe, Server, WifiOff, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
 
 const App: React.FC = () => {
   const [geoData, setGeoData] = useState<GeoJSONData | null>(null);
@@ -307,7 +307,7 @@ const App: React.FC = () => {
             className="absolute top-4 right-full mr-2 bg-geo-panel/90 text-slate-300 px-2 py-1.5 rounded-md border border-slate-700 hover:text-white hover:bg-slate-700 transition-colors shadow-lg z-40 pointer-events-auto flex items-center gap-2"
           >
             <div className="flex items-center gap-1">
-              <span className="w-6 h-6 rounded-full bg-geo-accent/15 border border-geo-accent/30 flex items-center justify-center text-geo-accent text-xs font-semibold">AI</span>
+              <Bot className="w-4 h-4 text-geo-accent" />
               <span className="text-xs font-semibold hidden sm:inline">Analyst</span>
             </div>
             <ChevronLeft className="w-4 h-4" />
