@@ -31,10 +31,26 @@ Click on any country, alliance, or conflict zone to get an immediate summary.
 *   **Key Players**: Who are the major members?
 *   **Risk Analysis**: How intense is the conflict?
 
+## What powers the map
+- **Basemap geometry**: World GeoJSON from Holtzy’s GitHub sample (`https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson`) plus India’s composite geometry from Datameet (`https://raw.githubusercontent.com/datameet/maps/master/Country/india-composite.geojson`).
+- **Historical & hypothetical states**: Curated ISO-A3 alliance/conflict data hardcoded in `services/dataService.ts` (1914, 1939, 1960, 1990, 2010, 2024, 2026).
+- **Styling & projection**: D3 GeoMercator with Tailwind-driven UI.
+
+## What powers the intelligence
+- **Live news ticker**: Google Gemini (`gemini-3-flash-preview`) with `googleSearch` tool enabled, asking for “top 3 critical geopolitical developments” (cached hourly).
+- **Analyst Link chat**: Gemini `gemini-3-flash-preview` with `googleSearch` when the selected year is 2024; streams responses with the in-app system prompt.
+- **Country/Alliance/Conflict briefs**: Gemini `gemini-3-flash-preview` (search grounded only for 2024) using structured prompts; cached via Redis/localStorage through the cache proxy.
+
+## Key experiences
+- **🌍 Real-Time Global Intelligence**: Live headlines + conflict overlays at a glance.
+- **⏳ Time Travel**: Jump between eras (1914→2026) to see alliances and flashpoints evolve.
+- **🤖 Context-Aware Analyst**: Ask “Why is this alliance forming?” or “What’s the escalation risk here?” and get neutral, concise answers tied to the selected year.
+- **🔍 Instant Deep Dives**: Click any country, alliance, or conflict for an AI brief with sources noted above.
+
 ## Who is it for?
 *   **News Junkies**: Get the context behind the headlines.
 *   **Students**: Visualize history instead of just reading dates.
 *   **Strategists**: See the big picture of global risks and opportunities.
 
 ---
-*GeoSight: The map that speaks.*
+*GeoSight: The map that speaks.* 
