@@ -179,7 +179,19 @@ export const HISTORICAL_DATA: Record<number, GeopoliticalState> = {
   }
 };
 
+export const KEY_YEARS = [1914, 1939, 1960, 1990, 2010, 2024, 2026];
+
 export const getGeopoliticalState = (year: number): GeopoliticalState => {
   if (HISTORICAL_DATA[year]) return HISTORICAL_DATA[year];
-  return HISTORICAL_DATA[2024];
+
+  const sorted = Object.keys(HISTORICAL_DATA).map(Number).sort((a, b) => a - b);
+  const min = sorted[0];
+  const max = sorted[sorted.length - 1];
+
+  if (year <= min) return HISTORICAL_DATA[min];
+  if (year >= max) return HISTORICAL_DATA[max];
+
+  // Use the nearest earlier snapshot to avoid leaking future states backward
+  const previous = [...sorted].reverse().find(y => y < year);
+  return previous ? HISTORICAL_DATA[previous] : HISTORICAL_DATA[min];
 };

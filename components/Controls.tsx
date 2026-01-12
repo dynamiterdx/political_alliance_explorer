@@ -1,9 +1,11 @@
 import React from 'react';
-import { LayerType, GeopoliticalState } from '../types';
-import { Layers, Activity, Calendar, Radio } from 'lucide-react';
+import { LayerType } from '../types';
+import { Layers, Activity, Calendar, Radio, Star } from 'lucide-react';
 
 interface ControlsProps {
-  years: number[];
+  years: number[]; // highlight years
+  minYear: number;
+  maxYear: number;
   currentYear: number;
   onYearChange: (year: number) => void;
   activeLayers: LayerType[];
@@ -13,30 +15,45 @@ interface ControlsProps {
 }
 
 const Controls: React.FC<ControlsProps> = ({ 
-  years, currentYear, onYearChange, 
+  years, minYear, maxYear, currentYear, onYearChange, 
   activeLayers, onToggleLayer, 
   onTriggerLiveUpdate, isUpdating 
 }) => {
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 w-full max-w-3xl z-20 pointer-events-none">
       
-      {/* Time Control Slider */}
-      <div className="bg-geo-panel/90 backdrop-blur-md border border-slate-700 rounded-full px-6 py-3 flex items-center gap-6 shadow-2xl pointer-events-auto">
-        <Calendar className="w-5 h-5 text-slate-400" />
-        <div className="flex items-center gap-4">
-            {years.map(year => (
-                <button
-                    key={year}
-                    onClick={() => onYearChange(year)}
-                    className={`text-sm font-mono font-bold transition-all duration-300 ${
-                        currentYear === year 
-                        ? 'text-geo-accent scale-125' 
-                        : 'text-slate-500 hover:text-slate-300'
-                    }`}
-                >
-                    {year}
-                </button>
-            ))}
+      {/* Time Control */}
+      <div className="bg-geo-panel/90 backdrop-blur-md border border-slate-700 rounded-xl px-6 py-4 flex flex-col gap-3 shadow-2xl pointer-events-auto w-full">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-slate-200 font-semibold">
+            <Calendar className="w-5 h-5 text-slate-400" />
+            <span>Year: {currentYear}</span>
+          </div>
+        </div>
+        <input 
+          type="range" 
+          min={minYear} 
+          max={maxYear} 
+          value={currentYear} 
+          onChange={(e) => onYearChange(Number(e.target.value))} 
+          className="w-full accent-geo-accent"
+        />
+        <div className="flex flex-wrap gap-2 items-center text-xs text-slate-400">
+          <Star className="w-3 h-3 text-geo-accent" />
+          <span className="font-semibold text-slate-200">Key years:</span>
+          {years.map(year => (
+              <button
+                  key={year}
+                  onClick={() => onYearChange(year)}
+                  className={`px-2 py-1 rounded-md border text-[12px] transition-colors ${
+                      currentYear === year 
+                      ? 'bg-geo-accent/20 border-geo-accent text-geo-accent'
+                      : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:border-geo-accent/50'
+                  }`}
+              >
+                  {year}
+              </button>
+          ))}
         </div>
       </div>
 

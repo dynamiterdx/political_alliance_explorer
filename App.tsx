@@ -7,15 +7,16 @@ import AllianceInfoPanel from './components/AllianceInfoPanel';
 import ConflictInfoPanel from './components/ConflictInfoPanel';
 import LeftSidebar from './components/LeftSidebar';
 import { GeoJSONData, GeoJSONFeature, GeopoliticalState, LayerType, Alliance, Conflict } from './types';
-import { getGeopoliticalState, HISTORICAL_DATA } from './services/dataService';
+import { getGeopoliticalState, HISTORICAL_DATA, KEY_YEARS } from './services/dataService';
 import * as GeminiService from './services/geminiService';
 import * as CacheService from './services/cacheService';
+import * as GdeltService from './services/gdeltService';
 import { Globe, Server, WifiOff, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
 
 const App: React.FC = () => {
   const [geoData, setGeoData] = useState<GeoJSONData | null>(null);
-  const [currentYear, setCurrentYear] = useState<number>(2026); // Default to future/current
-  const [currentState, setCurrentState] = useState<GeopoliticalState>(getGeopoliticalState(2026));
+  const [currentYear, setCurrentYear] = useState<number>(GdeltService.PRESENT_DYNAMIC_YEAR); // Default to present/dynamic
+  const [currentState, setCurrentState] = useState<GeopoliticalState>(getGeopoliticalState(GdeltService.PRESENT_DYNAMIC_YEAR));
   const [activeLayers, setActiveLayers] = useState<LayerType[]>([LayerType.ALLIANCES, LayerType.CONFLICTS]);
   
   const [selectedCountry, setSelectedCountry] = useState<GeoJSONFeature | null>(null);
@@ -33,6 +34,7 @@ const App: React.FC = () => {
 
   const [isUpdatingLive, setIsUpdatingLive] = useState(false);
   const [ticker, setTicker] = useState<string>("System Initialized. Awaiting global data stream...");
+  const [liveConflicts, setLiveConflicts] = useState<Conflict[]>([]);
   
   // Cache Status State
   const [cacheStatus, setCacheStatus] = useState<'checking' | 'active' | 'offline'>('checking');
@@ -86,12 +88,13 @@ const App: React.FC = () => {
 
   // 2. Update State when year changes
   useEffect(() => {
-    setCurrentState(getGeopoliticalState(currentYear));
+    const base = getGeopoliticalState(currentYear);
+    setCurrentState(currentYear === GdeltService.PRESENT_DYNAMIC_YEAR ? { ...base, conflicts: liveConflicts } : base);
     setSelectedCountry(null); 
     setSelectedAlliances([]);
     setInspectedAlliance(null);
     setSelectedConflict(null);
-  }, [currentYear]);
+  }, [currentYear, liveConflicts]);
 
   // 3. Initial Live Scan & Cache Health Check
   useEffect(() => {
@@ -146,23 +149,32 @@ const App: React.FC = () => {
   };
 
   const handleLiveUpdate = async () => {
-    // Only fetch live news for recent/future contexts
-    if (currentYear < 2024) return;
-    
+    if (currentYear !== GdeltService.PRESENT_DYNAMIC_YEAR) return;
     setIsUpdatingLive(true);
-    setTicker("Scanning global news feeds via Gemini Grounding...");
-    
+    setTicker("Scanning live GDELT signals...");
     try {
-        const headlines = await GeminiService.getGlobalHeadlines();
-        setTicker(headlines.slice(0, 150) + "...");
+        const { conflicts, ticker: liveTicker } = await GdeltService.fetchLiveSignals();
+        setLiveConflicts(conflicts);
+        setTicker(liveTicker);
     } catch (e) {
-        setTicker("Live scan failed. Using cached intelligence.");
+        console.error('Live update failed', e);
+        setTicker("Live GDELT scan failed. Using last known signals.");
     } finally {
         setIsUpdatingLive(false);
     }
   };
 
-  const TIMELINE_YEARS = [1914, 1939, 1960, 1990, 2010, 2024, 2026];
+  // Auto-refresh live signals when viewing the present
+  useEffect(() => {
+    if (currentYear !== GdeltService.PRESENT_DYNAMIC_YEAR) return;
+    handleLiveUpdate();
+    const interval = setInterval(handleLiveUpdate, 5 * 60 * 1000); // every 5 minutes
+    return () => clearInterval(interval);
+  }, [currentYear]);
+
+  const TIMELINE_YEARS = KEY_YEARS;
+  const MIN_YEAR = Math.min(...Object.keys(HISTORICAL_DATA).map(Number));
+  const MAX_YEAR = Math.max(...Object.keys(HISTORICAL_DATA).map(Number));
 
   // --- RENDER: Main App ---
   return (
@@ -251,6 +263,8 @@ const App: React.FC = () => {
         
         <Controls 
             years={TIMELINE_YEARS} 
+            minYear={MIN_YEAR}
+            maxYear={MAX_YEAR}
             currentYear={currentYear}
             onYearChange={setCurrentYear}
             activeLayers={activeLayers}
