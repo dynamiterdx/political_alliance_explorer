@@ -22,6 +22,8 @@ const PRESENT_YEAR = 2024;
 const clamp = (val: number, min = 0, max = 1) => Math.max(min, Math.min(max, val));
 
 const normalizeIso = (code: string) => code.trim().toUpperCase().slice(0, 3);
+const NON_STATE_CODES = new Set(['GOV','BUS','CRM','CVL','MIL','MED','OPP','EDU','SPY','LEG','AGR','REL','JUD','HLH','WST','PTY','MOS','COP','POL','UNK']);
+const isLikelyIso = (code: string) => /^[A-Z]{3}$/.test(code) && !NON_STATE_CODES.has(code);
 
 export const fetchLiveSignals = async (): Promise<LiveSignals> => {
   const resp = await fetch('/api/gdelt/events');
@@ -43,6 +45,11 @@ export const fetchLiveSignals = async (): Promise<LiveSignals> => {
   const hostilityByPair: Record<string, { a: string; b: string; score: number; count: number; lat?: number; lon?: number }> = {};
 
   events.forEach(ev => {
+    // Filter to likely country pairs with sane coordinates
+    if (!isLikelyIso(ev.actor1) || !isLikelyIso(ev.actor2)) return;
+    if (ev.lat != null && Math.abs(ev.lat) > 90) ev.lat = null;
+    if (ev.lon != null && Math.abs(ev.lon) > 180) ev.lon = null;
+
     // Hostility signal: negative GoldsteinScale or strongly negative tone
     const hostility = Math.max(0, -ev.goldstein) + Math.max(0, -ev.tone / 3);
     if (hostility <= 0) return;

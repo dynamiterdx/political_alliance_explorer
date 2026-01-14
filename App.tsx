@@ -168,7 +168,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (currentYear !== GdeltService.PRESENT_DYNAMIC_YEAR) return;
     handleLiveUpdate();
-    const interval = setInterval(handleLiveUpdate, 5 * 60 * 1000); // every 5 minutes
+    const interval = setInterval(handleLiveUpdate, 15 * 60 * 1000); // every 15 minutes
     return () => clearInterval(interval);
   }, [currentYear]);
 
@@ -265,6 +265,7 @@ const App: React.FC = () => {
             years={TIMELINE_YEARS} 
             minYear={MIN_YEAR}
             maxYear={MAX_YEAR}
+            presentYear={GdeltService.PRESENT_DYNAMIC_YEAR}
             currentYear={currentYear}
             onYearChange={setCurrentYear}
             activeLayers={activeLayers}

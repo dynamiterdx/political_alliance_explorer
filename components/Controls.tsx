@@ -6,6 +6,7 @@ interface ControlsProps {
   years: number[]; // highlight years
   minYear: number;
   maxYear: number;
+  presentYear: number;
   currentYear: number;
   onYearChange: (year: number) => void;
   activeLayers: LayerType[];
@@ -15,7 +16,7 @@ interface ControlsProps {
 }
 
 const Controls: React.FC<ControlsProps> = ({ 
-  years, minYear, maxYear, currentYear, onYearChange, 
+  years, minYear, maxYear, presentYear, currentYear, onYearChange, 
   activeLayers, onToggleLayer, 
   onTriggerLiveUpdate, isUpdating 
 }) => {
@@ -88,13 +89,13 @@ const Controls: React.FC<ControlsProps> = ({
 
         <button 
              onClick={onTriggerLiveUpdate}
-             disabled={isUpdating || currentYear !== 2024}
+             disabled={isUpdating || currentYear !== presentYear}
              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors border border-geo-success/30 hover:bg-geo-success/10 ${
                  isUpdating ? 'animate-pulse text-geo-success' : 'text-slate-300'
-             } ${currentYear !== 2024 ? 'opacity-30 cursor-not-allowed' : ''}`}
+             } ${currentYear !== presentYear ? 'opacity-30 cursor-not-allowed' : ''}`}
         >
             <Radio className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
-            {isUpdating ? 'Scanning...' : 'Live Scan'}
+            {isUpdating ? 'Scanning...' : 'Refresh GDELT'}
         </button>
       </div>
     </div>
