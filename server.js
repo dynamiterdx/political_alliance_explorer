@@ -164,14 +164,14 @@ Fields:
   "escalation_level": 0-5 or "uncertain",
   "trend": "escalating" | "stable" | "de-escalating" | "uncertain",
   "actors": ["ISO or actor names"],
-  "countries": ["ISO codes involved"],
+  "countries": ["ISO 3166-1 alpha-3 country codes only"],
   "dominant_instrument": "diplomacy|sanctions|cyber|proxy|limited_military|war|uncertain",
   "confidence": 0.0-1.0,
   "summary": "1-2 sentences, neutral",
   "evidence": ["short bullet evidence points"]
 }
 
-Rules: do not invent actors. If data is unclear, set escalation_level to "uncertain" and confidence low.
+Rules: do not invent actors. Countries must be ISO-3 codes (e.g., RUS, USA, CHN), no ISO-2 or generic actors (GOV/BUS/MIL). If data is unclear, set escalation_level to "uncertain" and confidence low.
 `;
 
 const explanationPrompt = (situation) => `
