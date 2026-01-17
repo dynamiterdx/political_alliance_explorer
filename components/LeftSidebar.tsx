@@ -1,6 +1,6 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, Shield, Coins, Users, Activity, Eye, Layers, Info, Check } from 'lucide-react';
-import { LayerType, Alliance, GeopoliticalState } from '../types';
+import { ChevronLeft, ChevronRight, Shield, Coins, Users, Activity, Eye, Layers, Info, Check, Flame, Swords } from 'lucide-react';
+import { LayerType, Alliance, GeopoliticalState, Conflict } from '../types';
 
 interface LeftSidebarProps {
   state: GeopoliticalState;
@@ -8,6 +8,7 @@ interface LeftSidebarProps {
   selectedAlliances: Alliance[];
   onAllianceToggle: (alliance: Alliance) => void;
   onAllianceInspect: (alliance: Alliance) => void;
+  onConflictSelect: (conflict: Conflict) => void;
   isOpen: boolean;
   onToggle: () => void;
 }
@@ -31,6 +32,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   selectedAlliances,
   onAllianceToggle,
   onAllianceInspect,
+  onConflictSelect,
   isOpen,
   onToggle
 }) => {
@@ -133,7 +135,45 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
             {/* Conflicts Legend */}
             {activeLayers.includes(LayerType.CONFLICTS) && (
                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-700/50 pb-2">Conflicts Legend</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-700/50 pb-2 flex items-center justify-between">
+                      <span>Conflicts ({state.conflicts.length})</span>
+                      {state.conflicts.length > 0 && (
+                        <span className="text-[10px] text-slate-500">Click to focus</span>
+                      )}
+                    </div>
+
+                    {state.conflicts.length > 0 ? (
+                      <div className="space-y-2 mb-4">
+                        {state.conflicts.map(conflict => (
+                          <button
+                            key={conflict.id}
+                            onClick={() => onConflictSelect(conflict)}
+                            className="w-full text-left bg-slate-800/40 rounded-lg p-3 border border-slate-700/50 hover:border-slate-500 hover:bg-slate-700/40 transition-colors flex flex-col gap-2"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Flame className="w-4 h-4 text-amber-400" />
+                                <span className="text-sm font-semibold text-slate-200 truncate">{conflict.name}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-[11px] text-amber-300 bg-amber-900/30 border border-amber-700/50 px-2 py-0.5 rounded-full">
+                                <Swords className="w-3 h-3" />
+                                {Math.round(conflict.intensity * 100)}%
+                              </div>
+                            </div>
+                            <div className="text-[11px] text-slate-400 line-clamp-2">{conflict.description}</div>
+                            <div className="flex flex-wrap gap-1">
+                              {conflict.participants.slice(0,6).map(code => (
+                                <span key={code} className="px-1.5 py-0.5 bg-slate-900/60 border border-slate-700 rounded text-[10px] text-slate-300 font-mono">{code}</span>
+                              ))}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-slate-500 mb-4">No live conflicts available.</div>
+                    )}
+
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-700/50 pb-2">Legend</div>
                     <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/50 space-y-3">
                          <div className="flex items-center gap-3">
                             <span className="w-4 h-4 rounded bg-[#fbbf24] border border-yellow-600/50 shadow-sm"></span>

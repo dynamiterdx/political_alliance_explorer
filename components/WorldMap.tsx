@@ -369,18 +369,27 @@ const WorldMap: React.FC<WorldMapProps> = ({
           {/* Conflict Callouts */}
           {activeLayers.includes(LayerType.CONFLICTS) && state.conflicts.map((conflict) => {
             const [lon, lat] = conflict.coordinates;
-            let coords: [number, number] | null = null;
+            let projected: [number, number] | null = null;
+
+            // Preferred: use provided lon/lat
             if (isFinite(lon) && isFinite(lat)) {
-              coords = [lon, lat];
-            } else {
-              // Fallback: use centroid of first participant
-              for (const p of conflict.participants) {
-                const c = countryCentroids[p];
-                if (c) { coords = c; break; }
+              const p = projection([lon, lat]);
+              if (p && isFinite(p[0]) && isFinite(p[1])) {
+                projected = [p[0], p[1]];
               }
             }
-            if (!coords) return null;
-            const projected = projection(coords);
+
+            // Fallback: use centroid of first participant (already projected)
+            if (!projected) {
+              for (const p of conflict.participants) {
+                const c = countryCentroids[p];
+                if (c && isFinite(c[0]) && isFinite(c[1])) {
+                  projected = c;
+                  break;
+                }
+              }
+            }
+
             if (!projected) return null;
             const [x, y] = projected;
             

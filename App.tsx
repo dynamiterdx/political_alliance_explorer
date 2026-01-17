@@ -307,6 +307,7 @@ const App: React.FC = () => {
             selectedAlliances={selectedAlliances}
             onAllianceToggle={handleAllianceToggle}
             onAllianceInspect={handleAllianceInspect}
+            onConflictSelect={handleConflictClick}
             isOpen={isLeftSidebarOpen}
             onToggle={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
         />

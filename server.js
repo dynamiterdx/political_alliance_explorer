@@ -181,6 +181,21 @@ Do not change actors or invent conflicts. Keep under 80 words.
 `;
 
 const runWorldScan = async () => {
+  // Load cached to avoid wiping data when classifications fail/quota hit
+  let cachedPayload = null;
+  try {
+    const cached = await redis.get(worldScanKey);
+    if (cached) {
+      let parsed = JSON.parse(cached);
+      if (parsed && parsed.content) {
+        parsed = typeof parsed.content === 'string' ? JSON.parse(parsed.content) : parsed.content;
+      }
+      cachedPayload = parsed;
+    }
+  } catch (e) {
+    // ignore cache read errors
+  }
+
   const ai = getGeminiClient();
   const results = [];
   for (const s of WATCHLIST) {
@@ -218,6 +233,11 @@ const runWorldScan = async () => {
     .slice(0, 3)
     .map(r => `${r.title}: level ${r.escalation_level} (${r.trend || 'trend unknown'})`)
     .join(' • ');
+
+  // If we failed to classify anything, fall back to cached payload
+  if (!results.length && cachedPayload && cachedPayload.situations && cachedPayload.situations.length) {
+    return cachedPayload;
+  }
 
   const payload = { situations: results, ticker: ticker || 'Scan complete. No clear high-escalation situations.', lastScannedAt };
   await redis.set(worldScanKey, JSON.stringify(payload), 'EX', WORLD_SCAN_TTL);
