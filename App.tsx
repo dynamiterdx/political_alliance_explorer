@@ -10,13 +10,13 @@ import { GeoJSONData, GeoJSONFeature, GeopoliticalState, LayerType, Alliance, Co
 import { getGeopoliticalState, HISTORICAL_DATA, KEY_YEARS } from './services/dataService';
 import * as GeminiService from './services/geminiService';
 import * as CacheService from './services/cacheService';
-import * as GdeltService from './services/gdeltService';
+import * as WorldScanService from './services/worldScanService';
 import { Globe, Server, WifiOff, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
 
 const App: React.FC = () => {
   const [geoData, setGeoData] = useState<GeoJSONData | null>(null);
-  const [currentYear, setCurrentYear] = useState<number>(GdeltService.PRESENT_DYNAMIC_YEAR); // Default to present/dynamic
-  const [currentState, setCurrentState] = useState<GeopoliticalState>(getGeopoliticalState(GdeltService.PRESENT_DYNAMIC_YEAR));
+  const [currentYear, setCurrentYear] = useState<number>(WorldScanService.PRESENT_DYNAMIC_YEAR); // Default to present/dynamic
+  const [currentState, setCurrentState] = useState<GeopoliticalState>(getGeopoliticalState(WorldScanService.PRESENT_DYNAMIC_YEAR));
   const [activeLayers, setActiveLayers] = useState<LayerType[]>([LayerType.ALLIANCES, LayerType.CONFLICTS]);
   
   const [selectedCountry, setSelectedCountry] = useState<GeoJSONFeature | null>(null);
@@ -33,8 +33,9 @@ const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(true);
 
   const [isUpdatingLive, setIsUpdatingLive] = useState(false);
-  const [ticker, setTicker] = useState<string>("System Initialized. Awaiting global data stream...");
+  const [ticker, setTicker] = useState<string>("System Initialized. Awaiting world scan...");
   const [liveConflicts, setLiveConflicts] = useState<Conflict[]>([]);
+  const [lastScannedAt, setLastScannedAt] = useState<string | null>(null);
   
   // Cache Status State
   const [cacheStatus, setCacheStatus] = useState<'checking' | 'active' | 'offline'>('checking');
@@ -89,7 +90,7 @@ const App: React.FC = () => {
   // 2. Update State when year changes
   useEffect(() => {
     const base = getGeopoliticalState(currentYear);
-    setCurrentState(currentYear === GdeltService.PRESENT_DYNAMIC_YEAR ? { ...base, conflicts: liveConflicts } : base);
+    setCurrentState(currentYear === WorldScanService.PRESENT_DYNAMIC_YEAR ? { ...base, conflicts: liveConflicts } : base);
     setSelectedCountry(null); 
     setSelectedAlliances([]);
     setInspectedAlliance(null);
@@ -149,16 +150,17 @@ const App: React.FC = () => {
   };
 
   const handleLiveUpdate = async () => {
-    if (currentYear !== GdeltService.PRESENT_DYNAMIC_YEAR) return;
+    if (currentYear !== WorldScanService.PRESENT_DYNAMIC_YEAR) return;
     setIsUpdatingLive(true);
-    setTicker("Scanning live GDELT signals...");
+    setTicker("Running world scan via Gemini...");
     try {
-        const { conflicts, ticker: liveTicker } = await GdeltService.fetchLiveSignals();
-        setLiveConflicts(conflicts);
-        setTicker(liveTicker);
+        const scan = await WorldScanService.refreshWorldScan();
+        setLiveConflicts(WorldScanService.mapSituationsToConflicts(scan.situations));
+        setTicker(scan.ticker);
+        setLastScannedAt(scan.lastScannedAt);
     } catch (e) {
         console.error('Live update failed', e);
-        setTicker("Live GDELT scan failed. Using last known signals.");
+        setTicker("Live scan failed. Using last known signals.");
     } finally {
         setIsUpdatingLive(false);
     }
@@ -166,9 +168,20 @@ const App: React.FC = () => {
 
   // Auto-refresh live signals when viewing the present
   useEffect(() => {
-    if (currentYear !== GdeltService.PRESENT_DYNAMIC_YEAR) return;
-    handleLiveUpdate();
-    const interval = setInterval(handleLiveUpdate, 15 * 60 * 1000); // every 15 minutes
+    if (currentYear !== WorldScanService.PRESENT_DYNAMIC_YEAR) return;
+    const load = async () => {
+      try {
+        const scan = await WorldScanService.fetchWorldScan();
+        setLiveConflicts(WorldScanService.mapSituationsToConflicts(scan.situations));
+        setTicker(scan.ticker);
+        setLastScannedAt(scan.lastScannedAt);
+      } catch (e) {
+        console.error('Initial world scan load failed', e);
+        setTicker("World scan unavailable. Try manual refresh.");
+      }
+    };
+    load();
+    const interval = setInterval(handleLiveUpdate, 6 * 60 * 60 * 1000); // every 6 hours
     return () => clearInterval(interval);
   }, [currentYear]);
 
@@ -193,11 +206,16 @@ const App: React.FC = () => {
         </div>
         
         {/* News Ticker */}
-        <div className="flex-1 mx-12 overflow-hidden relative h-8 flex items-center bg-slate-900/50 rounded border border-slate-800 px-4">
+        <div className="flex-1 mx-12 overflow-hidden relative h-10 flex items-center bg-slate-900/50 rounded border border-slate-800 px-4">
              <div className="text-xs font-mono text-geo-success whitespace-nowrap animate-marquee">
                  <span className="font-bold mr-2">:: LIVE INTEL ::</span> 
                  {ticker}
              </div>
+             {lastScannedAt && (
+                <div className="absolute right-4 text-[10px] text-slate-400 font-mono">
+                  Last scan: {new Date(lastScannedAt).toLocaleString()}
+                </div>
+             )}
         </div>
 
         {/* Cache Status Indicator */}
@@ -265,7 +283,7 @@ const App: React.FC = () => {
             years={TIMELINE_YEARS} 
             minYear={MIN_YEAR}
             maxYear={MAX_YEAR}
-            presentYear={GdeltService.PRESENT_DYNAMIC_YEAR}
+            presentYear={WorldScanService.PRESENT_DYNAMIC_YEAR}
             currentYear={currentYear}
             onYearChange={setCurrentYear}
             activeLayers={activeLayers}

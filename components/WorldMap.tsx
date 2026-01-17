@@ -369,6 +369,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
           {/* Conflict Callouts */}
           {activeLayers.includes(LayerType.CONFLICTS) && state.conflicts.map((conflict) => {
             const [lon, lat] = conflict.coordinates;
+            if (!isFinite(lon) || !isFinite(lat)) return null;
             const projected = projection([lon, lat]);
             if (!projected) return null;
             const [x, y] = projected;

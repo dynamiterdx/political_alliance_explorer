@@ -7,6 +7,7 @@ import cors from 'cors';
 import Redis from 'ioredis';
 import AdmZip from 'adm-zip';
 import dotenv from 'dotenv';
+import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
 
@@ -50,6 +51,36 @@ app.use(express.json());
 
 const CACHE_TTL = 24 * 60 * 60; // 24 Hours in seconds
 const GDELT_LASTUPDATE_URL = 'http://data.gdeltproject.org/gdeltv2/lastupdate-translation.txt';
+const WORLD_SCAN_TTL = 12 * 60 * 60; // 12 hours
+const EXPLANATION_TTL = 6 * 60 * 60; // 6 hours
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
+const getGeminiClient = () => {
+  if (!GEMINI_API_KEY) throw new Error('Missing GEMINI_API_KEY/API_KEY for Gemini classification');
+  return new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+};
+
+// Present-year watchlist (seed situations)
+const WATCHLIST = [
+  { id: 'russia-ukraine', title: 'Russia–Ukraine war', scope: 'Eastern Europe' },
+  { id: 'israel-palestine', title: 'Israel–Palestine conflict', scope: 'Levant' },
+  { id: 'red-sea', title: 'Red Sea shipping tensions', scope: 'Bab el-Mandeb / Red Sea' },
+  { id: 'taiwan-strait', title: 'Taiwan Strait tensions', scope: 'East Asia' },
+  { id: 'south-china-sea', title: 'South China Sea disputes', scope: 'Southeast Asia maritime' },
+  { id: 'india-pakistan', title: 'India–Pakistan border tensions', scope: 'South Asia' },
+  { id: 'korean-peninsula', title: 'Korean Peninsula standoff', scope: 'Northeast Asia' },
+  { id: 'sahel', title: 'Sahel instability', scope: 'West Africa' }
+];
+
+const ESCALATION_LADDER = `
+Level 0 Stable – diplomacy/normal relations.
+Level 1 Coercion – sanctions, embargoes, economic leverage.
+Level 2 Grey Zone – cyber, disinformation, espionage pressure.
+Level 3 Proxy Conflict – state-backed armed groups or militias.
+Level 4 Limited Military – localized kinetic clashes (drones, artillery, border forces).
+Level 5 War – sustained state-on-state conventional warfare.
+Only one dominant level per situation. Return "uncertain" if unclear.
+`;
 
 // Health Check for Frontend UI
 app.get('/api/health', async (req, res) => {
@@ -110,6 +141,136 @@ app.get('/api/gdelt/events', async (_req, res) => {
   } catch (error) {
     console.error('GDELT fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch GDELT events' });
+  }
+});
+
+const worldScanKey = 'world_scan_current';
+const explanationKey = (id) => `world_scan_expl_${id}`;
+
+const classificationPrompt = (situation) => `
+You are classifying a current geopolitical situation for GeoSight.
+Return a single JSON object, no prose.
+
+Escalation ladder:
+${ESCALATION_LADDER}
+
+Situation: ${situation.title}
+Region: ${situation.scope}
+
+Fields:
+{
+  "id": "${situation.id}",
+  "title": "...",
+  "escalation_level": 0-5 or "uncertain",
+  "trend": "escalating" | "stable" | "de-escalating" | "uncertain",
+  "actors": ["ISO or actor names"],
+  "countries": ["ISO codes involved"],
+  "dominant_instrument": "diplomacy|sanctions|cyber|proxy|limited_military|war|uncertain",
+  "confidence": 0.0-1.0,
+  "summary": "1-2 sentences, neutral",
+  "evidence": ["short bullet evidence points"]
+}
+
+Rules: do not invent actors. If data is unclear, set escalation_level to "uncertain" and confidence low.
+`;
+
+const explanationPrompt = (situation) => `
+Provide a concise markdown explanation for the situation "${situation.title}".
+Use 3 bullet points: what is happening, why it matters, trend/uncertainty.
+Do not change actors or invent conflicts. Keep under 80 words.
+`;
+
+const runWorldScan = async () => {
+  const ai = getGeminiClient();
+  const results = [];
+  for (const s of WATCHLIST) {
+    try {
+      const resp = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: [{ role: 'user', parts: [{ text: classificationPrompt(s) }] }]
+      });
+      const text = resp.text || '';
+      const jsonStart = text.indexOf('{');
+      const jsonEnd = text.lastIndexOf('}');
+      if (jsonStart === -1 || jsonEnd === -1) continue;
+      const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+      results.push({
+        id: s.id,
+        title: parsed.title || s.title,
+        escalation_level: parsed.escalation_level,
+        trend: parsed.trend,
+        actors: parsed.actors || [],
+        countries: parsed.countries || [],
+        dominant_instrument: parsed.dominant_instrument || 'uncertain',
+        confidence: parsed.confidence ?? 0,
+        summary: parsed.summary || '',
+        evidence: parsed.evidence || []
+      });
+    } catch (err) {
+      console.error(`Classification failed for ${s.id}:`, err);
+    }
+  }
+
+  const lastScannedAt = new Date().toISOString();
+  const ticker = results
+    .filter(r => r.escalation_level !== 'uncertain')
+    .sort((a, b) => (b.escalation_level || 0) - (a.escalation_level || 0))
+    .slice(0, 3)
+    .map(r => `${r.title}: level ${r.escalation_level} (${r.trend || 'trend unknown'})`)
+    .join(' • ');
+
+  const payload = { situations: results, ticker: ticker || 'Scan complete. No clear high-escalation situations.', lastScannedAt };
+  await redis.set(worldScanKey, JSON.stringify(payload), 'EX', WORLD_SCAN_TTL);
+  return payload;
+};
+
+app.get('/api/worldscan', async (_req, res) => {
+  try {
+    const cached = await redis.get(worldScanKey);
+    if (cached) return res.json(JSON.parse(cached));
+    const fresh = await runWorldScan();
+    return res.json(fresh);
+  } catch (e) {
+    console.error('World scan error:', e);
+    return res.status(500).json({ error: 'World scan failed' });
+  }
+});
+
+app.post('/api/worldscan/refresh', async (_req, res) => {
+  try {
+    const fresh = await runWorldScan();
+    return res.json(fresh);
+  } catch (e) {
+    console.error('World scan refresh error:', e);
+    return res.status(500).json({ error: 'World scan refresh failed' });
+  }
+});
+
+app.get('/api/worldscan/:id/explanation', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const cachedWorld = await redis.get(worldScanKey);
+    if (!cachedWorld) return res.status(404).json({ error: 'No world scan available' });
+    const world = JSON.parse(cachedWorld);
+    const situation = (world.situations || []).find((s) => s.id === id);
+    if (!situation) return res.status(404).json({ error: 'Situation not found' });
+
+    const cacheKey = explanationKey(id);
+    const cached = await redis.get(cacheKey);
+    if (cached) return res.json(JSON.parse(cached));
+
+    const ai = getGeminiClient();
+    const resp = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: [{ role: 'user', parts: [{ text: explanationPrompt(situation) }] }]
+    });
+    const text = resp.text || 'Explanation unavailable.';
+    const payload = { id, explanation: text, generatedAt: new Date().toISOString() };
+    await redis.set(cacheKey, JSON.stringify(payload), 'EX', EXPLANATION_TTL);
+    return res.json(payload);
+  } catch (e) {
+    console.error('Explanation error:', e);
+    return res.status(500).json({ error: 'Failed to generate explanation' });
   }
 });
 
