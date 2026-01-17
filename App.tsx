@@ -169,7 +169,7 @@ const App: React.FC = () => {
     }
   };
 
-  // Auto-refresh live signals when viewing the present
+  // Auto-load cached world scan when viewing the present; refresh if stale (>6h)
   useEffect(() => {
     if (currentYear !== WorldScanService.PRESENT_DYNAMIC_YEAR) return;
     const load = async () => {
@@ -179,6 +179,12 @@ const App: React.FC = () => {
         setTicker(scan.ticker);
         setLastScannedAt(scan.lastScannedAt);
         setIsLiveFallback(false);
+
+        // If cache is older than 6 hours, trigger a single refresh
+        const ageMs = scan.lastScannedAt ? Date.now() - new Date(scan.lastScannedAt).getTime() : Infinity;
+        if (ageMs > 6 * 60 * 60 * 1000) {
+          handleLiveUpdate();
+        }
       } catch (e) {
         console.error('Initial world scan load failed', e);
         setTicker("World scan unavailable. Showing last cached view (if any).");
@@ -186,8 +192,24 @@ const App: React.FC = () => {
       }
     };
     load();
-    const interval = setInterval(handleLiveUpdate, 6 * 60 * 60 * 1000); // every 6 hours
-    return () => clearInterval(interval);
+
+    // Poll cache periodically without triggering Gemini; pick up scans from other users
+    const poll = setInterval(() => {
+      if (currentYear === WorldScanService.PRESENT_DYNAMIC_YEAR) {
+        WorldScanService.fetchWorldScan()
+          .then(scan => {
+            setLiveConflicts(WorldScanService.mapSituationsToConflicts(scan.situations));
+            setTicker(scan.ticker);
+            setLastScannedAt(scan.lastScannedAt);
+            setIsLiveFallback(false);
+          })
+          .catch(() => {
+            // Keep current state; do not flip to fallback here
+          });
+      }
+    }, 10 * 60 * 1000); // every 10 minutes (cache-only)
+
+    return () => clearInterval(poll);
   }, [currentYear]);
 
   const TIMELINE_YEARS = KEY_YEARS;
@@ -216,11 +238,6 @@ const App: React.FC = () => {
                  <span className="font-bold mr-2">:: LIVE INTEL ::</span> 
                  {ticker}
              </div>
-             {lastScannedAt && (
-                <div className="absolute right-4 text-[10px] text-slate-400 font-mono">
-                  Last scan: {new Date(lastScannedAt).toLocaleString()}
-                </div>
-             )}
         </div>
 
         {/* Cache Status Indicator */}
