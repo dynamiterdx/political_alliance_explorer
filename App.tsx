@@ -36,6 +36,7 @@ const App: React.FC = () => {
   const [ticker, setTicker] = useState<string>("System Initialized. Awaiting world scan...");
   const [liveConflicts, setLiveConflicts] = useState<Conflict[]>([]);
   const [lastScannedAt, setLastScannedAt] = useState<string | null>(null);
+  const [isLiveFallback, setIsLiveFallback] = useState<boolean>(false);
   
   // Cache Status State
   const [cacheStatus, setCacheStatus] = useState<'checking' | 'active' | 'offline'>('checking');
@@ -158,9 +159,11 @@ const App: React.FC = () => {
         setLiveConflicts(WorldScanService.mapSituationsToConflicts(scan.situations));
         setTicker(scan.ticker);
         setLastScannedAt(scan.lastScannedAt);
+        setIsLiveFallback(false);
     } catch (e) {
         console.error('Live update failed', e);
-        setTicker("Live scan failed. Using last known signals.");
+        setTicker("Live scan failed. Using last known cached signals.");
+        setIsLiveFallback(true);
     } finally {
         setIsUpdatingLive(false);
     }
@@ -175,9 +178,11 @@ const App: React.FC = () => {
         setLiveConflicts(WorldScanService.mapSituationsToConflicts(scan.situations));
         setTicker(scan.ticker);
         setLastScannedAt(scan.lastScannedAt);
+        setIsLiveFallback(false);
       } catch (e) {
         console.error('Initial world scan load failed', e);
-        setTicker("World scan unavailable. Try manual refresh.");
+        setTicker("World scan unavailable. Showing last cached view (if any).");
+        setIsLiveFallback(true);
       }
     };
     load();
@@ -231,6 +236,26 @@ const App: React.FC = () => {
                 {cacheStatus === 'active' ? <Server className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
                 {cacheStatus === 'active' ? "SECURE CACHE" : "LOCAL CACHE"}
                 <span className={`w-2 h-2 rounded-full ${cacheStatus === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
+            </div>
+
+            <div 
+              className={`flex flex-col text-[11px] font-mono px-3 py-1 rounded border transition-colors ${
+                isLiveFallback 
+                  ? 'bg-amber-900/30 border-amber-700 text-amber-300' 
+                  : 'bg-emerald-900/30 border-emerald-700 text-emerald-300'
+              }`}
+              title={isLiveFallback ? "Using last cached world scan" : "Using latest world scan"}
+            >
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{isLiveFallback ? 'CACHED SCAN' : 'LIVE SCAN'}</span>
+                <span className={`w-2 h-2 rounded-full ${isLiveFallback ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400 animate-pulse'}`}></span>
+              </div>
+              {lastScannedAt && (
+                <span className="text-[10px] text-slate-300">as of {new Date(lastScannedAt).toLocaleString()}</span>
+              )}
+              {!lastScannedAt && isLiveFallback && (
+                <span className="text-[10px] text-slate-300">no recent scan available</span>
+              )}
             </div>
 
             {/* Author credit - subtle pill */}

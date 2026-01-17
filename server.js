@@ -227,7 +227,17 @@ const runWorldScan = async () => {
 app.get('/api/worldscan', async (_req, res) => {
   try {
     const cached = await redis.get(worldScanKey);
-    if (cached) return res.json(JSON.parse(cached));
+    if (cached) {
+      let parsed = JSON.parse(cached);
+      if (parsed && parsed.content) {
+        try {
+          parsed = typeof parsed.content === 'string' ? JSON.parse(parsed.content) : parsed.content;
+        } catch {
+          parsed = parsed.content;
+        }
+      }
+      if (parsed && parsed.situations) return res.json(parsed);
+    }
     const fresh = await runWorldScan();
     return res.json(fresh);
   } catch (e) {

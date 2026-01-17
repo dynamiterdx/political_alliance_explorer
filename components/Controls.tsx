@@ -95,7 +95,7 @@ const Controls: React.FC<ControlsProps> = ({
              } ${currentYear !== presentYear ? 'opacity-30 cursor-not-allowed' : ''}`}
         >
             <Radio className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
-            {isUpdating ? 'Scanning...' : 'Refresh GDELT'}
+            {isUpdating ? 'Scanning...' : 'Refresh Scan'}
         </button>
       </div>
     </div>
