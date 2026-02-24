@@ -45,10 +45,16 @@ GeoSight is a live geopolitical sense-making tool. The present year (2026) is dr
 - No client-side scraping or heavy parsing.
 - No hallucinated future forecasts presented as fact (speculation must be explicit).
 
+## Approaches Explored and Parked
+- **GDELT client-side ingestion:** We fetched GDELT CSV/JSON directly in the browser and parsed per page load. Problems: heavy download for each user, rate/latency concerns, CORS fragility, and unfiltered event noise leading to poor signal-to-noise.
+- **GDELT server proxy (basic):** Tried a thin proxy that pulled GDELT feeds and lightly filtered by country codes. Issues: still high noise, minimal clustering/trend logic, and no strong provenance surfaced to users. We paused this pending a richer scoring pipeline.
+- **Hardcoded conflicts/alliances for present year:** Initially set static conflict lists (binary on/off). This failed to reflect real-time shifts and made the map feel synthetic; kept only curated *historical* years static.
+- **LLM-as-source:** Early prompts let the LLM infer conflicts without grounding. Risk of hallucination was unacceptable; current stance is LLM-only-as-explainer on structured signals.
+- **Raw API news aggregation (non-Gemini):** Considered general news APIs without grounding; rejected due to cost, licensing, and weaker attribution/traceability vs grounded search.
+
 ## Near-Term Steps
 1) Implement server ingestion + cache for grounded search results and derived world state.
 2) Wire frontend to the summarized `worldState` contract; replace any raw client fetches.
 3) Add status chip + explicit cached banner; manual refresh button with shared cooldown.
 4) Tighten Gemini prompts to demand ISO-3 codes, evidence links, and concise conflict briefs.
 5) Verify callout placement and conflict list visibility against the new payload.
-
