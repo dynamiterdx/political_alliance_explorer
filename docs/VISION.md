@@ -41,11 +41,6 @@ Every present-year situation shown in GeoSight should include:
 - **Why:** strategic relevance and near-term systemic effect.
 - **How:** dominant instrument (military/economic/political/cyber/information), trend direction, confidence, and evidence links.
 
-## API/Model Contract (proposed)
-- `worldState`: `{ scannedAt, source: live|cache, conflicts: [], alliances: [], ticker: [] }`
-- `conflict`: `{ id, title, countries: [ISO3], summary, intensity, trend, evidence: [urls], centroid }`
-- `alliance`: `{ id, name, members: [ISO3], summary, status }`
-- `tickerItem`: High-impact changes only (escalation, new actor, ceasefire).
 
 ## User Experience
 - **Map:** Arrows/heat for conflict intensity; callouts anchored at centroids; clicking highlights participants.
@@ -71,10 +66,3 @@ Every present-year situation shown in GeoSight should include:
 - **Hardcoded conflicts/alliances for present year:** Initially set static conflict lists (binary on/off). This failed to reflect real-time shifts and made the map feel synthetic; kept only curated *historical* years static.
 - **Ungrounded LLM generation:** Early prompts let the model infer conflicts without grounding. Risk of hallucination was unacceptable; current stance is grounded retrieval plus structured extraction first.
 - **Raw API news aggregation (non-Gemini):** Considered general news APIs without grounding; rejected due to cost, licensing, and weaker attribution/traceability vs grounded search.
-
-## Near-Term Steps
-1) Implement server ingestion + cache for grounded search results and derived world state.
-2) Wire frontend to the summarized `worldState` contract; replace any raw client fetches.
-3) Add status chip + explicit cached banner; manual refresh button with shared cooldown.
-4) Tighten Gemini prompts to demand ISO-3 codes, evidence links, and concise conflict briefs.
-5) Verify callout placement and conflict list visibility against the new payload.
