@@ -26,6 +26,8 @@ These include:
 
 The system must never allow multiple inconsistent state representations to exist simultaneously.
 
+---
+
 ## 1.1 WorldState Object
 
 Fields:
@@ -75,11 +77,51 @@ A **Situation** represents a materially significant geopolitical development.
 
 Situations are the primary analytic unit of the GeoSight system.
 
+### Situation Lifecycle
+
+Situations persist through a lifecycle and are never removed from the world state solely because activity has subsided.
+
+Instead, situations transition through status states that represent their current level of activity.
+
+```
+SituationStatus
+
+  emerging
+  active
+  stabilizing
+  resolved
+  dormant
+```
+
+### Status Definitions
+
+**emerging**
+Early signals indicate a situation may develop.
+
+**active**
+Situation is currently producing meaningful geopolitical activity.
+
+**stabilizing**
+Activity is decreasing but the situation remains relevant.
+
+**resolved**
+Situation has concluded but remains part of the historical record.
+
+**dormant**
+Situation is inactive but may re-emerge in the future.
+
+Situations must remain in the world state for the remainder of the year once detected.
+
+---
+
+### Situation Schema
+
 ```
 Situation
   id
   title
   type
+  status
 
   actors[]
   regions[]
@@ -94,6 +136,9 @@ Situation
   confidence_level
   evidence[]
 
+  start_date
+  end_date
+
   first_detected
   last_updated
 ```
@@ -102,6 +147,9 @@ Situation
 
 **type**
 Classification according to the Situation Ontology.
+
+**status**
+Current lifecycle state of the situation.
 
 **actors**
 States or organizations involved.
@@ -129,6 +177,18 @@ System confidence based on evidence quality.
 
 **evidence**
 References supporting the situation.
+
+**start_date**
+Date when the situation began.
+
+**end_date**
+Date when the situation reached resolved state (optional).
+
+**first_detected**
+Timestamp when the system first detected the situation.
+
+**last_updated**
+Timestamp when the situation was last updated.
 
 ---
 
@@ -212,6 +272,8 @@ The ontology ensures situations are categorized consistently.
 
 All situations must belong to one of the following classes.
 
+---
+
 ## 3.1 Conflict Situations
 
 * Armed Conflict
@@ -219,16 +281,22 @@ All situations must belong to one of the following classes.
 * Territorial Dispute
 * Proxy Conflict
 
+---
+
 ## 3.2 Political Situations
 
 * Political Crisis
 * Regime Instability
 * Diplomatic Breakdown
 
+---
+
 ## 3.3 Strategic Competition
 
 * Strategic Rivalry
 * Military Posturing
+
+---
 
 ## 3.4 Economic and Sanctions Situations
 
@@ -236,11 +304,15 @@ All situations must belong to one of the following classes.
 * Trade Conflict
 * Economic Bloc Formation
 
+---
+
 ## 3.5 Alliance and Cooperation
 
 * Military Alliance
 * Strategic Partnership
 * Security Pact
+
+---
 
 ## 3.6 Emerging Risk
 
@@ -329,8 +401,7 @@ Low-materiality situations may be excluded from the world state.
 
 ## 4.5 World State Synthesis
 
-The system constructs a new WorldState revision using the
-material situations produced by the pipeline.
+The system constructs a new WorldState revision using the material situations produced by the pipeline.
 
 Rules:
 
@@ -353,6 +424,10 @@ The following rules apply to all system behavior.
 4. Assistant responses must be explainable using fields present in the active world state.
 
 5. Any uncertainty must propagate into the confidence field rather than being hidden.
+
+6. Situations must not be deleted during the active year. Situations that become inactive must transition to a resolved or dormant status rather than being removed.
+
+7. Historical snapshots must preserve all situations that occurred during the year, including resolved situations.
 
 ---
 
