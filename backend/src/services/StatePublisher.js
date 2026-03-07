@@ -81,6 +81,9 @@ export class StatePublisher {
                         alliances: true,
                     }
                 });
+            }, {
+                maxWait: 15000,
+                timeout: 25000,
             });
 
             console.log(`[StatePublisher] Successfully committed Revision ID: ${newWorldState.revision_id}`);
