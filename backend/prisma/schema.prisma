@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model WorldState {
+  id               String       @id @default(uuid())
+  revision_id      String       @unique @default(uuid())
+  year             Int
+  created_at       DateTime     @default(now())
+  last_scan_time   DateTime?
+  freshness_status String       // live | cached | historical
+  source_type      String       // live_scan | curated_snapshot
+
+  situations       Situation[]  @relation("WorldStateSituations")
+  alliances        Alliance[]   @relation("WorldStateAlliances")
+  actors           Actor[]      @relation("WorldStateActors")
+  regions          Region[]     @relation("WorldStateRegions")
+}
+
+model Situation {
+  id               String       @id @default(uuid())
+  title            String
+  type             String
+  status           String
+  
+  summary          String?
+  causes           String?
+  trajectory       String?
+  
+  intensity_score  Int
+  trend_direction  String
+  
+  confidence_level String       // e.g., high, medium, low
+  
+  start_date       DateTime?
+  end_date         DateTime?
+  
+  first_detected   DateTime     @default(now())
+  last_updated     DateTime     @updatedAt
+
+  worldStates      WorldState[] @relation("WorldStateSituations")
+
+  actors           Actor[]      @relation("SituationActors")
+  regions          Region[]     @relation("SituationRegions")
+  evidence         Evidence[]
+}
+
+model Evidence {
+  id               String       @id @default(uuid())
+  sourceReference  String
+  capturedAt       DateTime     @default(now())
+  relevanceNote    String?
+  
+  situationId      String
+  situation        Situation    @relation(fields: [situationId], references: [id], onDelete: Cascade)
+}
+
+model Alliance {
+  id               String       @id @default(uuid())
+  name             String
+  type             String
+  established_year Int?
+  purpose          String?
+  status           String
+
+  members          Actor[]      @relation("AllianceMembers")
+
+  worldStates      WorldState[] @relation("WorldStateAlliances")
+}
+
+model Actor {
+  id               String       @id @default(uuid())
+  name             String
+  actor_type       String
+
+  worldStates      WorldState[] @relation("WorldStateActors")
+  situations       Situation[]  @relation("SituationActors")
+  alliances        Alliance[]   @relation("AllianceMembers")
+  regions          Region[]     @relation("ActorRegions")
+}
+
+model Region {
+  id                 String       @id @default(uuid())
+  name               String
+  region_type        String
+  geometry_reference String?
+
+  worldStates        WorldState[] @relation("WorldStateRegions")
+  situations         Situation[]  @relation("SituationRegions")
+  actors             Actor[]      @relation("ActorRegions")
+}
