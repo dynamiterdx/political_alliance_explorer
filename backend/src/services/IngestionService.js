@@ -16,23 +16,7 @@ export class IngestionService {
 
         // In a real implementation, we would call external APIs here.
         // For now, we simulate finding breaking news.
-        const mockSignals = [
-            {
-                source: "Global News Wire",
-                timestamp: new Date().toISOString(),
-                rawText: "Breaking: The Trade Federation has announced an immediate blockade of the Naboo system, halting all cargo shipments. Tensions are escalating rapidly as the Galactic Republic Senate convenes for an emergency session."
-            },
-            {
-                source: "Defense Monitor",
-                timestamp: new Date().toISOString(),
-                rawText: "Satellite imagery reveals significant troop buildup along the eastern border of Region X. Independent analysts suggest combat readiness could be achieved within 48 hours."
-            },
-            {
-                source: "Economic Times",
-                timestamp: new Date().toISOString(),
-                rawText: "The Eurozone has formally ratified a new sweeping trade agreement with South American nations, significantly reducing tariffs on agricultural and technological exports starting next year."
-            }
-        ];
+        const mockSignals = [];
 
         return new Promise((resolve) => {
             setTimeout(() => {

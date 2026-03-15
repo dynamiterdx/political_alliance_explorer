@@ -37,9 +37,16 @@ export class ExtractionEngine {
                     trajectory: { type: Type.STRING, description: "Direction the situation appears to be evolving toward." },
                     intensity_score: { type: Type.INTEGER, description: "Relative level of geopolitical significance (1 to 10)." },
                     trend_direction: { type: Type.STRING, description: "Must be one of: escalating, stabilizing, de-escalating" },
-                    confidence_level: { type: Type.STRING, description: "Must be one of: high, medium, low." }
+                    confidence_level: { type: Type.STRING, description: "Must be one of: high, medium, low." },
+                    // Map Overlay coordinates
+                    latitude: { type: Type.NUMBER, description: "Primary latitude of the situation." },
+                    longitude: { type: Type.NUMBER, description: "Primary longitude of the situation." },
+                    source_lat: { type: Type.NUMBER, description: "If directional event (e.g. missile, sanction from country A to B), source latitude." },
+                    source_lng: { type: Type.NUMBER, description: "If directional event, source longitude." },
+                    target_lat: { type: Type.NUMBER, description: "If directional event, target latitude." },
+                    target_lng: { type: Type.NUMBER, description: "If directional event, target longitude." }
                 },
-                required: ["title", "type", "status", "summary", "causes", "trajectory", "intensity_score", "trend_direction", "confidence_level"]
+                required: ["title", "type", "status", "summary", "causes", "trajectory", "intensity_score", "trend_direction", "confidence_level", "latitude", "longitude"]
             }
         };
     }
