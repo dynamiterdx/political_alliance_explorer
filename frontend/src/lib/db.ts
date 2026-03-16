@@ -38,6 +38,18 @@ export async function fetchWorldStateWithRelations(year: number) {
         `;
         const allRes = await client.query(alliancesQuery, [worldState.id]);
 
+        // Fetch members for each alliance
+        for (let alliance of allRes.rows) {
+            const membersQuery = `
+                SELECT act.name, act.country_code 
+                FROM "Actor" act
+                JOIN "_AllianceMembers" am ON am."A" = act.id
+                WHERE am."B" = $1
+            `;
+            const membersRes = await client.query(membersQuery, [alliance.id]);
+            alliance.members = membersRes.rows;
+        }
+
         worldState.situations = sitRes.rows;
         worldState.alliances = allRes.rows;
 
