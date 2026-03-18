@@ -41,9 +41,11 @@ export const WorldMap = memo(({ situations, selectedAlliance }: { situations: an
                     <Geographies geography={geoUrl}>
                         {({ geographies }) =>
                             geographies.map((geo) => {
-                                // Simple mock alliance highlight logic based on region names
-                                // A real prod app would use iso_a3 matching or a strict geo-mapping dictionary.
-                                const isAllianceMember = selectedAlliance?.purpose?.toLowerCase().includes(geo.properties.name.toLowerCase());
+                                // Highlight alliance members based on actual Actor names from DB
+                                const isAllianceMember = selectedAlliance?.members?.some((member: any) =>
+                                    geo.properties.name.toLowerCase().includes(member.name.toLowerCase()) ||
+                                    member.name.toLowerCase().includes(geo.properties.name.toLowerCase())
+                                );
 
                                 return (
                                     <Geography

@@ -18,6 +18,7 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
 
     const isLiveMode = selectedYear === new Date().getFullYear();
     const [selectedAlliance, setSelectedAlliance] = useState<any | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     // Sync state if server revalidates (only for live mode)
     useEffect(() => {
@@ -73,8 +74,14 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
         }
     };
 
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-50 flex flex-col font-sans overflow-hidden">
+        <div className="h-screen w-screen bg-slate-950 text-slate-50 flex flex-col font-sans overflow-hidden">
 
             {/* Top Navigation / Ticker */}
             <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between h-14 shadow-xl">
@@ -128,7 +135,7 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                 {/* Global Controls */}
                 <div className="flex items-center gap-4 px-6 h-full border-l border-slate-800">
                     <div className="text-xs text-slate-500 font-mono hidden lg:block">
-                        {isRefreshing ? "Fetching Data..." : `Updated ${new Date(worldState?.last_scan_time || Date.now()).toLocaleTimeString()}`}
+                        {mounted && (isRefreshing ? "Fetching Data..." : `Updated ${new Date(worldState?.last_scan_time || Date.now()).toLocaleTimeString()}`)}
                     </div>
                     {isLiveMode && (
                         <button
@@ -140,6 +147,13 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                             <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                         </button>
                     )}
+                    <button
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors bg-slate-800/50 border border-slate-700"
+                        title="Toggle Sidebar"
+                    >
+                        <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${isSidebarOpen ? 'rotate-180' : ''}`} />
+                    </button>
                 </div>
             </header>
 
@@ -147,7 +161,7 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
             <main className="flex-1 flex overflow-hidden relative">
 
                 {/* Left Sidebar: Active Conflicts / Situations */}
-                <aside className="w-96 border-r border-slate-800 bg-slate-900/80 backdrop-blur-3xl flex flex-col z-10 shadow-[5px_0_30px_rgba(0,0,0,0.6)]">
+                <aside className={`transition-all duration-300 ease-in-out border-r border-slate-800 bg-slate-900/80 backdrop-blur-3xl flex flex-col z-10 shadow-[5px_0_30px_rgba(0,0,0,0.6)] ${isSidebarOpen ? 'w-96' : 'w-0 border-none overflow-hidden'}`}>
 
                     {/* Tabs */}
                     <div className="flex border-b border-slate-800">
@@ -203,7 +217,23 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                             </span>
                                         </div>
                                         <span className="text-xs font-mono text-blue-300/80 block mb-2">{alliance.type} • Est. {alliance.established_year}</span>
-                                        <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{alliance.purpose}</p>
+                                        <p className="text-xs text-slate-400 leading-relaxed line-clamp-3 mb-3">{alliance.purpose}</p>
+
+                                        {/* Display Members */}
+                                        {alliance.members && alliance.members.length > 0 && (
+                                            <div className="pt-3 border-t border-white/10 flex flex-wrap gap-1.5">
+                                                {alliance.members.slice(0, 10).map((member: any, i: number) => (
+                                                    <span key={i} className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">
+                                                        {member.name}
+                                                    </span>
+                                                ))}
+                                                {alliance.members.length > 10 && (
+                                                    <span className="text-[10px] font-mono text-slate-500 bg-slate-800/50 border border-slate-700/50 px-1.5 py-0.5 rounded">
+                                                        +{alliance.members.length - 10} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 ))
                             ) : (
