@@ -6,6 +6,7 @@ import { WorldMap } from '@/components/WorldMap';
 import { AIAssistantPanel } from '@/components/AIAssistantPanel';
 import { Activity, Globe, Shield, History, RotateCw, ChevronRight, X, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
 
 export default function DashboardClient({ initialWorldState }: { initialWorldState: any }) {
     const router = useRouter();
@@ -410,15 +411,10 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                         {insightModal.error}
                                     </div>
                                 ) : (
-                                    <div className="space-y-6 text-slate-300 text-sm leading-relaxed prose prose-invert prose-indigo max-w-none">
-                                        {insightModal.data?.split('\n\n').map((paragraph, idx) => {
-                                            const isBoldStarter = paragraph.startsWith('**') || paragraph.includes(':');
-                                            return (
-                                                <p key={idx} className={`${isBoldStarter ? 'font-medium text-slate-200' : ''}`}>
-                                                    {paragraph}
-                                                </p>
-                                            );
-                                        })}
+                                    <div className="space-y-6 text-slate-300 text-sm leading-relaxed prose prose-sm prose-invert prose-indigo max-w-none">
+                                        <ReactMarkdown>
+                                            {insightModal.data || ''}
+                                        </ReactMarkdown>
                                     </div>
                                 )}
                             </div>
