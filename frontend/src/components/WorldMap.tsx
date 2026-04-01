@@ -12,7 +12,7 @@ import {
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
-export const WorldMap = memo(({ situations, selectedAlliance }: { situations: any[], selectedAlliance?: any }) => {
+export const WorldMap = memo(({ situations, selectedAlliances, allianceColors }: { situations: any[], selectedAlliances?: any[], allianceColors?: string[] }) => {
     const [tooltipContent, setTooltipContent] = useState("");
 
     return (
@@ -41,18 +41,28 @@ export const WorldMap = memo(({ situations, selectedAlliance }: { situations: an
                     <Geographies geography={geoUrl}>
                         {({ geographies }) =>
                             geographies.map((geo) => {
-                                // Highlight alliance members based on actual Actor names from DB
-                                const isAllianceMember = selectedAlliance?.members?.some((member: any) =>
-                                    geo.properties.name.toLowerCase().includes(member.name.toLowerCase()) ||
-                                    member.name.toLowerCase().includes(geo.properties.name.toLowerCase())
-                                );
+                                // Find if this country belongs to any of the currently selected alliances
+                                let membershipColor = null;
+
+                                if (selectedAlliances && allianceColors) {
+                                    for (let i = 0; i < selectedAlliances.length; i++) {
+                                        const isMember = selectedAlliances[i]?.members?.some((member: any) =>
+                                            geo.properties.name.toLowerCase().includes(member.name.toLowerCase()) ||
+                                            member.name.toLowerCase().includes(geo.properties.name.toLowerCase())
+                                        );
+                                        if (isMember) {
+                                            membershipColor = allianceColors[i % allianceColors.length];
+                                            break; // Once claimed by an alliance, stop checking (could blend, but first-match is cleaner for now)
+                                        }
+                                    }
+                                }
 
                                 return (
                                     <Geography
                                         key={geo.rsmKey}
                                         geography={geo}
-                                        fill={isAllianceMember ? "rgba(59, 130, 246, 0.2)" : "#1e293b"}
-                                        stroke={isAllianceMember ? "rgba(59, 130, 246, 0.5)" : "#334155"}
+                                        fill={membershipColor ? `${membershipColor}33` : "#1e293b"} // 33 is 20% opacity in hex
+                                        stroke={membershipColor ? `${membershipColor}80` : "#334155"} // 80 is 50% opacity
                                         strokeWidth={0.5}
                                         style={{
                                             default: { outline: "none", transition: "all 250ms" },

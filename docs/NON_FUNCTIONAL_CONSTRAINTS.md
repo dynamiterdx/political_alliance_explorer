@@ -23,6 +23,7 @@ Additional expectations:
 * Read-heavy traffic must not degrade live scan quality or freshness signaling.
 * Global world-state distribution should scale more easily than per-user bespoke computation.
 * World-state revisions should be efficiently cacheable and distributable across edge infrastructure.
+* On-demand AI insights (such as detailed Alliance Summaries) must be heavily cached with a predefined Time-To-Live (TTL) or a scheduled background refresh to minimize redundant LLM generation loops.
 
 ---
 

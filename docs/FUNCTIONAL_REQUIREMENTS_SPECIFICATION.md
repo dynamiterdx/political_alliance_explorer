@@ -9,7 +9,7 @@ The system must provide the following features:
 * **Present-Year Live Mode:** current year is dynamic and can refresh from grounded live signals.
 * **Historical Mode:** non-present years use curated, static data.
 * **Conflict List Panel:** ranked list of geopolitical situations with intensity and trend. The default view prioritizes emerging, active, and escalating situations while allowing access to resolved situations for the selected year.
-* **Alliance List Panel:** alliance view with membership and status.
+* **Alliance List Panel:** alliance view with membership and status. Supports multi-selection for comparative map highlighting using distinctive colors. Includes a 'More Info' feature that provides cached, AI-generated geopolitical summaries exploring the alliance's purpose, rationale, and future trajectory.
 * **Situation Detail View:** structured details for selected situation or alliance including lifecycle status.
 * **Top Ticker:** only materially important updates derived from the same world state.
 * **Assistant:** explanation interface constrained to system world state and curated history.

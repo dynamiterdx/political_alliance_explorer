@@ -17,8 +17,48 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
     const [tickerIndex, setTickerIndex] = useState(0);
 
     const isLiveMode = selectedYear === new Date().getFullYear();
-    const [selectedAlliance, setSelectedAlliance] = useState<any | null>(null);
+    const [selectedAlliances, setSelectedAlliances] = useState<any[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [insightModal, setInsightModal] = useState<{ alliance: any, loading: boolean, data: string | null, error: string | null } | null>(null);
+
+    const ALLIANCE_COLORS = [
+        '#3b82f6', // blue-500
+        '#10b981', // emerald-500
+        '#f59e0b', // amber-500
+        '#8b5cf6', // violet-500
+        '#ec4899', // pink-500
+        '#06b6d4', // cyan-500
+    ];
+
+    const toggleAllianceSelection = (alliance: any) => {
+        setSelectedAlliances(prev => {
+            if (prev.find(a => a.id === alliance.id)) {
+                return prev.filter(a => a.id !== alliance.id);
+            } else {
+                return [...prev, alliance];
+            }
+        });
+    };
+
+    const fetchInsight = async (e: React.MouseEvent, alliance: any) => {
+        e.stopPropagation(); // don't toggle map selection
+        setInsightModal({ alliance, loading: true, data: null, error: null });
+        try {
+            const res = await fetch('/api/alliance/insights', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ allianceId: alliance.id, allianceData: alliance })
+            });
+            const data = await res.json();
+            if (data.insight) {
+                setInsightModal({ alliance, loading: false, data: data.insight, error: null });
+            } else {
+                setInsightModal({ alliance, loading: false, data: null, error: data.error || 'Failed to analyze.' });
+            }
+        } catch (e) {
+            setInsightModal({ alliance, loading: false, data: null, error: 'Network error.' });
+        }
+    };
 
     // Sync state if server revalidates (only for live mode)
     useEffect(() => {
@@ -204,38 +244,53 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                             )
                         ) : (
                             worldState?.alliances?.length > 0 ? (
-                                worldState.alliances.map((alliance: any) => (
-                                    <div
-                                        key={alliance.id}
-                                        onClick={() => setSelectedAlliance(selectedAlliance?.id === alliance.id ? null : alliance)}
-                                        className={`group relative overflow-hidden rounded-xl border p-4 transition-all cursor-pointer ${selectedAlliance?.id === alliance.id ? 'bg-blue-900/30 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.2)]' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
-                                    >
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-bold text-slate-50">{alliance.name}</h3>
-                                            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full ${alliance.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
-                                                {alliance.status}
-                                            </span>
-                                        </div>
-                                        <span className="text-xs font-mono text-blue-300/80 block mb-2">{alliance.type} • Est. {alliance.established_year}</span>
-                                        <p className="text-xs text-slate-400 leading-relaxed line-clamp-3 mb-3">{alliance.purpose}</p>
+                                worldState.alliances.map((alliance: any) => {
+                                    const selectedIndex = selectedAlliances.findIndex(a => a.id === alliance.id);
+                                    const isSelected = selectedIndex !== -1;
+                                    const colorHex = isSelected ? ALLIANCE_COLORS[selectedIndex % ALLIANCE_COLORS.length] : null;
 
-                                        {/* Display Members */}
-                                        {alliance.members && alliance.members.length > 0 && (
-                                            <div className="pt-3 border-t border-white/10 flex flex-wrap gap-1.5">
-                                                {alliance.members.slice(0, 10).map((member: any, i: number) => (
-                                                    <span key={i} className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">
-                                                        {member.name}
+                                    return (
+                                        <div
+                                            key={alliance.id}
+                                            className={`group relative overflow-hidden rounded-xl border p-4 transition-all ${isSelected ? 'bg-slate-800/80 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                                            style={{ borderColor: isSelected ? colorHex! : undefined }}
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h3 className="font-bold text-slate-50 cursor-pointer" onClick={() => toggleAllianceSelection(alliance)}>{alliance.name}</h3>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={(e) => fetchInsight(e, alliance)}
+                                                        className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/40 transition-colors flex items-center gap-1"
+                                                        title="AI Geopolitical Insights"
+                                                    >
+                                                        <Activity className="w-3 h-3" /> Insights
+                                                    </button>
+                                                    <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full ${alliance.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
+                                                        {alliance.status}
                                                     </span>
-                                                ))}
-                                                {alliance.members.length > 10 && (
-                                                    <span className="text-[10px] font-mono text-slate-500 bg-slate-800/50 border border-slate-700/50 px-1.5 py-0.5 rounded">
-                                                        +{alliance.members.length - 10} more
-                                                    </span>
-                                                )}
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
-                                ))
+                                            <span className="text-xs font-mono text-slate-400 block mb-2 cursor-pointer" onClick={() => toggleAllianceSelection(alliance)}>{alliance.type} • Est. {alliance.established_year}</span>
+                                            <p className="text-xs text-slate-400 leading-relaxed line-clamp-3 mb-3 cursor-pointer" onClick={() => toggleAllianceSelection(alliance)}>{alliance.purpose}</p>
+
+                                            {/* Display Members */}
+                                            {alliance.members && alliance.members.length > 0 && (
+                                                <div className="pt-3 border-t border-white/10 flex flex-wrap gap-1.5">
+                                                    {alliance.members.slice(0, 10).map((member: any, i: number) => (
+                                                        <span key={i} className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">
+                                                            {member.name}
+                                                        </span>
+                                                    ))}
+                                                    {alliance.members.length > 10 && (
+                                                        <span className="text-[10px] font-mono text-slate-500 bg-slate-800/50 border border-slate-700/50 px-1.5 py-0.5 rounded">
+                                                            +{alliance.members.length - 10} more
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })
                             ) : (
                                 <div className="text-sm text-slate-500 text-center py-8 flex flex-col items-center gap-3">
                                     <Shield className="w-8 h-8 opacity-20" />
@@ -251,7 +306,7 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 z-0"></div>
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cartographer.png')] opacity-10 mix-blend-overlay z-0"></div>
                     <div className="relative z-10 w-full h-full">
-                        <WorldMap situations={worldState?.situations || []} selectedAlliance={selectedAlliance} />
+                        <WorldMap situations={worldState?.situations || []} selectedAlliances={selectedAlliances} allianceColors={ALLIANCE_COLORS} />
                     </div>
                 </section>
 
@@ -316,6 +371,63 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                         <span className="text-slate-600 font-mono text-[9px] uppercase tracking-widest">SYNTHESIZED BY GEMINI 2.5 PRO</span>
                                     </div>
                                 </div>
+                            </div>
+                        </motion.aside>
+                    )}
+                </AnimatePresence>
+
+                {/* Alliance Insight Modal (Slide In Over Map) */}
+                <AnimatePresence>
+                    {insightModal && (
+                        <motion.aside
+                            initial={{ y: 800, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 800, opacity: 0 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="absolute left-1/2 bottom-8 -translate-x-1/2 w-full max-w-3xl max-h-[80vh] bg-slate-900/95 backdrop-blur-2xl border border-indigo-500/30 shadow-[0_0_50px_rgba(79,70,229,0.2)] rounded-2xl flex flex-col z-30 overflow-hidden"
+                            style={{ x: '-50%' }}
+                        >
+                            <div className="flex items-center justify-between p-4 border-b border-indigo-900/50 bg-indigo-950/30">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs font-mono px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-inner flex items-center gap-2">
+                                        <Activity className="w-3 h-3 animate-pulse" /> AI STRATEGIC INSIGHT
+                                    </span>
+                                    <span className="text-sm font-bold text-slate-200">{insightModal.alliance.name}</span>
+                                </div>
+                                <button onClick={() => setInsightModal(null)} className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar relative">
+                                {insightModal.loading ? (
+                                    <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                        <RotateCw className="w-8 h-8 text-indigo-500 animate-spin" />
+                                        <p className="text-indigo-300 font-mono text-sm animate-pulse tracking-widest">GENERATING GEOPOLITICAL ANALYSIS...</p>
+                                    </div>
+                                ) : insightModal.error ? (
+                                    <div className="p-4 rounded-xl bg-red-950/30 border border-red-900/50 text-red-400 text-sm">
+                                        {insightModal.error}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6 text-slate-300 text-sm leading-relaxed prose prose-invert prose-indigo max-w-none">
+                                        {insightModal.data?.split('\n\n').map((paragraph, idx) => {
+                                            const isBoldStarter = paragraph.startsWith('**') || paragraph.includes(':');
+                                            return (
+                                                <p key={idx} className={`${isBoldStarter ? 'font-medium text-slate-200' : ''}`}>
+                                                    {paragraph}
+                                                </p>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-4 border-t border-indigo-900/50 bg-slate-950/80 flex items-center justify-between text-xs">
+                                <span className="text-slate-500 flex items-center gap-2">
+                                    <Globe className="w-4 h-4" /> Cached Analysis (24h TTL)
+                                </span>
+                                <span className="text-indigo-500/70 font-mono text-[9px] uppercase tracking-widest drop-shadow-md">POWERED BY GEMINI 2.5 FLASH</span>
                             </div>
                         </motion.aside>
                     )}
