@@ -264,8 +264,11 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                         <div
                                             key={alliance.id}
                                             onClick={() => toggleAllianceSelection(alliance)}
-                                            className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 shrink-0 ${isSelected ? 'bg-slate-800/80 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
-                                            style={{ borderColor: isSelected ? colorHex! : undefined }}
+                                            className={`group relative overflow-hidden rounded-lg p-4 transition-all duration-300 cursor-pointer flex flex-col gap-2.5 shrink-0 border ${isSelected ? 'border-transparent' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                                            style={isSelected ? {
+                                                backgroundColor: `${colorHex}15`, 
+                                                boxShadow: `0 0 0 2px ${colorHex}, 0 0 25px ${colorHex}30`
+                                            } : undefined}
                                         >
                                             <h3 className="text-sm font-semibold text-slate-100 leading-snug">{alliance.name}</h3>
                                             <div className="flex justify-between items-center gap-2">
