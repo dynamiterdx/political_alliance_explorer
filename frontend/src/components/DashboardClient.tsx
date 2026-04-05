@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 const WorldMap = dynamic(() => import('@/components/WorldMap').then(mod => mod.WorldMap), { ssr: false });
 import { AIAssistantPanel } from '@/components/AIAssistantPanel';
-import { Activity, Globe, Shield, History, RotateCw, ChevronRight, X, AlertTriangle, Sparkles } from 'lucide-react';
+import { Activity, Globe, Shield, History, RotateCw, ChevronRight, X, AlertTriangle, Sparkles, ArrowRight, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
@@ -357,14 +357,49 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar">
-                                <div>
+                                <div className="space-y-4">
                                     <h2 className="text-xl font-bold leading-snug drop-shadow-md">{selectedSituation.title}</h2>
-                                    <div className="flex items-center gap-3 mt-3">
-                                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded shadow-sm border ${selectedSituation.intensity_score >= 8 ? 'bg-red-500/10 text-red-400 border-red-500/20' : selectedSituation.intensity_score >= 5 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
-                                            INTENSITY INT-{selectedSituation.intensity_score}
-                                        </span>
-                                        <span className="text-xs font-mono text-slate-400">{selectedSituation.first_detected ? new Date(selectedSituation.first_detected).toLocaleDateString() : 'Active'}</span>
+                                    
+                                    <div className="grid grid-cols-2 gap-3 mt-4">
+                                        <div className="bg-slate-800/40 border border-slate-700/50 p-2.5 rounded-lg flex flex-col gap-1">
+                                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Ontology Class</span>
+                                            <span className="text-xs text-slate-200 font-mono font-medium truncate" title={selectedSituation.type}>{selectedSituation.type}</span>
+                                        </div>
+                                        <div className="bg-slate-800/40 border border-slate-700/50 p-2.5 rounded-lg flex flex-col gap-1">
+                                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Risk Index</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-xs font-bold ${selectedSituation.intensity_score >= 8 ? 'text-red-400' : selectedSituation.intensity_score >= 5 ? 'text-amber-400' : 'text-blue-400'}`}>
+                                                    {selectedSituation.intensity_score} / 10
+                                                </span>
+                                                <span className="text-[9px] uppercase bg-white/5 px-1.5 py-0.5 rounded text-slate-300 border border-white/5">{selectedSituation.trend_direction}</span>
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-800/40 border border-slate-700/50 p-2.5 rounded-lg flex flex-col gap-1">
+                                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Lifecycle Status</span>
+                                            <span className="text-xs font-semibold capitalize text-slate-300">{selectedSituation.status}</span>
+                                        </div>
+                                        <div className="bg-slate-800/40 border border-slate-700/50 p-2.5 rounded-lg flex flex-col gap-1">
+                                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Directionality</span>
+                                            <div className="text-xs font-medium">
+                                                {selectedSituation.source_lat != null && selectedSituation.target_lat != null ? (
+                                                    <span className="flex items-center gap-1.5 text-amber-400/90"><ArrowRight className="w-3.5 h-3.5" /> Directed Action</span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1.5 text-blue-400/90"><MapPin className="w-3.5 h-3.5" /> Regional Focus</span>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
+
+                                    {selectedSituation.actors && selectedSituation.actors.length > 0 && (
+                                        <div className="mt-2 text-xs flex flex-wrap gap-2 items-center">
+                                            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mr-1">Actors:</span>
+                                            {selectedSituation.actors.map((actor: any, i: number) => (
+                                                <span key={i} className="text-[10px] font-mono text-slate-300 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded">
+                                                    {actor.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">
