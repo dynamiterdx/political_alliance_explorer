@@ -253,30 +253,32 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                     return (
                                         <div
                                             key={alliance.id}
-                                            className={`group relative overflow-hidden rounded-xl border p-4 transition-all ${isSelected ? 'bg-slate-800/80 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                                            onClick={() => toggleAllianceSelection(alliance)}
+                                            className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 ${isSelected ? 'bg-slate-800/80 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
                                             style={{ borderColor: isSelected ? colorHex! : undefined }}
                                         >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h3 className="font-bold text-slate-50 cursor-pointer" onClick={() => toggleAllianceSelection(alliance)}>{alliance.name}</h3>
+                                            <div className="flex justify-between items-center gap-2">
+                                                <span className="text-[10px] font-mono px-2 py-1 rounded flex-1 truncate bg-slate-900 border border-white/5 text-slate-400">
+                                                    {alliance.type} • Est. {alliance.established_year}
+                                                </span>
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={(e) => fetchInsight(e, alliance)}
-                                                        className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/40 transition-colors flex items-center gap-1"
+                                                        className="text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/40 transition-colors flex items-center gap-1 whitespace-nowrap"
                                                         title="AI Geopolitical Insights"
                                                     >
                                                         <Activity className="w-3 h-3" /> Insights
                                                     </button>
-                                                    <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full ${alliance.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
+                                                    <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded whitespace-nowrap ${alliance.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
                                                         {alliance.status}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <span className="text-xs font-mono text-slate-400 block mb-2 cursor-pointer" onClick={() => toggleAllianceSelection(alliance)}>{alliance.type} • Est. {alliance.established_year}</span>
-                                            <p className="text-xs text-slate-400 leading-relaxed line-clamp-3 mb-3 cursor-pointer" onClick={() => toggleAllianceSelection(alliance)}>{alliance.purpose}</p>
+                                            <h3 className="text-sm font-semibold text-slate-100 leading-snug">{alliance.name}</h3>
 
                                             {/* Display Members */}
                                             {alliance.members && alliance.members.length > 0 && (
-                                                <div className="pt-3 border-t border-white/10 flex flex-wrap gap-1.5">
+                                                <div className="pt-2 mt-1 border-t border-white/5 flex flex-wrap gap-1.5">
                                                     {alliance.members.slice(0, 10).map((member: any, i: number) => (
                                                         <span key={i} className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">
                                                             {member.name}
