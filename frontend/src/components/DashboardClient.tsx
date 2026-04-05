@@ -22,6 +22,7 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
     const [selectedAlliances, setSelectedAlliances] = useState<any[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [insightModal, setInsightModal] = useState<{ alliance: any, loading: boolean, data: string | null, error: string | null } | null>(null);
+    const [expandedAlliances, setExpandedAlliances] = useState<string[]>([]);
 
     const ALLIANCE_COLORS = [
         '#3b82f6', // blue-500
@@ -40,6 +41,15 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                 return [...prev, alliance];
             }
         });
+    };
+
+    const toggleExpandMembers = (e: React.MouseEvent, allianceId: string) => {
+        e.stopPropagation();
+        setExpandedAlliances(prev => 
+            prev.includes(allianceId) 
+                ? prev.filter(id => id !== allianceId)
+                : [...prev, allianceId]
+        );
     };
 
     const fetchInsight = async (e: React.MouseEvent, alliance: any) => {
@@ -231,13 +241,13 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                         className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 shrink-0 ${selectedSituation?.id === sit.id ? 'bg-slate-800/80 border-slate-600 shadow-[0_0_20px_rgba(0,0,0,0.4)]' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
                                     >
                                         <div className={`absolute top-0 left-0 w-1 h-full ${sit.intensity_score >= 8 ? 'bg-red-500' : sit.intensity_score >= 5 ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
+                                        <h3 className="text-sm font-semibold text-slate-100 leading-snug">{sit.title}</h3>
                                         <div className="flex justify-between items-center gap-2">
                                             <span className="text-[10px] font-mono px-2 py-1 rounded flex-1 truncate bg-slate-900 border border-white/5 text-slate-400">{sit.type}</span>
                                             <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded whitespace-nowrap ${sit.trend_direction?.toLowerCase()?.includes('escalat') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
                                                 {sit.trend_direction}
                                             </span>
                                         </div>
-                                        <h3 className="text-sm font-semibold text-slate-100 leading-snug">{sit.title}</h3>
                                     </div>
                                 ))
                             ) : (
@@ -257,6 +267,7 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                             className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 shrink-0 ${isSelected ? 'bg-slate-800/80 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
                                             style={{ borderColor: isSelected ? colorHex! : undefined }}
                                         >
+                                            <h3 className="text-sm font-semibold text-slate-100 leading-snug">{alliance.name}</h3>
                                             <div className="flex justify-between items-center gap-2">
                                                 <span className="text-[10px] font-mono px-2 py-1 rounded flex-1 truncate bg-slate-900 border border-white/5 text-slate-400">
                                                     {alliance.type} • Est. {alliance.established_year}
@@ -265,19 +276,29 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                                     {alliance.status}
                                                 </span>
                                             </div>
-                                            <h3 className="text-sm font-semibold text-slate-100 leading-snug">{alliance.name}</h3>
 
                                             <div className="pt-2 mt-1 border-t border-white/5 flex items-end justify-between gap-3">
-                                                <div className="flex flex-wrap gap-1.5 flex-1">
-                                                    {alliance.members && alliance.members.slice(0, 8).map((member: any, i: number) => (
+                                                <div className="flex flex-wrap gap-1.5 flex-1 items-center">
+                                                    {alliance.members && (expandedAlliances.includes(alliance.id) ? alliance.members : alliance.members.slice(0, 8)).map((member: any, i: number) => (
                                                         <span key={i} className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">
                                                             {member.name}
                                                         </span>
                                                     ))}
-                                                    {alliance.members && alliance.members.length > 8 && (
-                                                        <span className="text-[10px] font-mono text-slate-500 bg-slate-800/50 border border-slate-700/50 px-1.5 py-0.5 rounded">
+                                                    {alliance.members && alliance.members.length > 8 && !expandedAlliances.includes(alliance.id) && (
+                                                        <button 
+                                                            onClick={(e) => toggleExpandMembers(e, alliance.id)}
+                                                            className="text-[10px] font-mono font-semibold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 px-1.5 py-0.5 rounded transition-colors"
+                                                        >
                                                             +{alliance.members.length - 8} more
-                                                        </span>
+                                                        </button>
+                                                    )}
+                                                    {alliance.members && alliance.members.length > 8 && expandedAlliances.includes(alliance.id) && (
+                                                        <button 
+                                                            onClick={(e) => toggleExpandMembers(e, alliance.id)}
+                                                            className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-600 px-1.5 py-0.5 rounded transition-colors"
+                                                        >
+                                                            Show less
+                                                        </button>
                                                     )}
                                                 </div>
                                                 <div className="relative group/btn flex-shrink-0">
