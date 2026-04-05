@@ -133,368 +133,245 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
     }, []);
 
     return (
-        <div className="h-screen w-screen bg-slate-950 text-slate-50 flex flex-col font-sans overflow-hidden">
+        <div className="flex h-screen bg-surface-dim text-on-surface overflow-hidden relative font-sans">
+            <AIAssistantPanel worldState={worldState} />
 
-            {/* Top Navigation / Ticker */}
-            <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between h-14 shadow-xl">
-                <div className="flex items-center gap-4 px-6 h-full border-r border-slate-800">
-                    <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-1.5 -ml-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                        title="Toggle Sidebar"
-                    >
-                        <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${isSidebarOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    <Globe className="w-5 h-5 text-emerald-500 hidden md:block" />
-                    <h1 className="text-xl font-bold tracking-tight text-white hidden md:block">GeoSight</h1>
+            <div className="flex flex-col w-full h-full">
+                <header className="h-14 bg-surface-container-low flex items-center justify-between px-6 z-20 shrink-0">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <Globe className="w-5 h-5 text-primary" />
+                            <h1 className="text-lg font-bold tracking-widest font-display uppercase">GeoSight</h1>
+                        </div>
+                        <select
+                            className="bg-surface-container text-sm rounded-md px-2 py-1 outline-none border border-outline-variant/30"
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(Number(e.target.value))}
+                        >
+                            <option value={new Date().getFullYear()}>Present</option>
+                            <option value={2025}>2025</option>
+                            <option value={2024}>2024</option>
+                        </select>
+                    </div>
 
-                    {/* Year Navigation */}
-                    <select
-                        className="bg-slate-800 border border-slate-700 text-sm rounded-md px-2 py-1 outline-none focus:border-emerald-500 transition-colors"
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(Number(e.target.value))}
-                        disabled={isRefreshing}
-                    >
-                        <option value={new Date().getFullYear()}>Present ({new Date().getFullYear()})</option>
-                        <option value={2025}>2025</option>
-                        <option value={2024}>2024</option>
-                    </select>
-
-                    {isLiveMode ? (
-                        <span className="flex items-center gap-1.5 text-xs uppercase px-2 py-0.5 bg-emerald-500/10 rounded-full border border-emerald-500/20 text-emerald-400 font-mono">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse drop-shadow-md"></span>
-                            {worldState?.freshness_status || 'LIVE'}
-                        </span>
-                    ) : (
-                        <span className="flex items-center gap-1.5 text-xs uppercase px-2 py-0.5 bg-slate-500/10 rounded-full border border-slate-500/20 text-slate-400 font-mono">
-                            <History className="w-3 h-3" />
-                            ARCHIVE
-                        </span>
-                    )}
-                </div>
-
-                {/* Ticker */}
-                <div className="flex-1 px-4 overflow-hidden relative h-full flex items-center">
-                    <AnimatePresence mode="wait">
-                        {worldState?.situations?.[tickerIndex] && (
-                            <motion.div
-                                key={tickerIndex}
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: -20, opacity: 0 }}
-                                className="text-sm text-slate-300 truncate font-mono flex items-center gap-3"
+                    <div className="flex items-center gap-4">
+                        <div className="text-xs text-slate-500 font-mono hidden lg:block">
+                            {mounted && (isRefreshing ? "Fetching..." : `Updated ${new Date(worldState?.last_scan_time || Date.now()).toLocaleTimeString()}`)}
+                        </div>
+                        {isLiveMode && (
+                            <button
+                                onClick={() => router.refresh()}
+                                className="p-1.5 rounded-md bg-surface-container hover:bg-surface-container-high transition-colors"
                             >
-                                <span className="text-amber-400/80 font-bold uppercase text-xs border border-amber-900/50 bg-amber-950/30 px-2 py-0.5 rounded drop-shadow-md">BREAKING</span>
-                                {worldState.situations[tickerIndex].title}
-                            </motion.div>
+                                <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                            </button>
                         )}
-                    </AnimatePresence>
-                </div>
-
-                {/* Global Controls */}
-                <div className="flex items-center gap-4 px-6 h-full border-l border-slate-800">
-                    <div className="text-xs text-slate-500 font-mono hidden lg:block">
-                        {mounted && (isRefreshing ? "Fetching Data..." : `Updated ${new Date(worldState?.last_scan_time || Date.now()).toLocaleTimeString()}`)}
                     </div>
-                    {isLiveMode && (
-                        <button
-                            onClick={handleRefresh}
-                            disabled={isRefreshing}
-                            className={`p-1.5 rounded-md border transition-colors ${isRefreshing ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
-                            title="Manual Live Refresh"
-                        >
-                            <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        </button>
-                    )}
-                </div>
-            </header>
+                </header>
 
-            {/* Main Dashboard Layout */}
-            <main className="flex-1 flex overflow-hidden relative">
+                <main className="flex flex-1 overflow-hidden relative">
+                    <aside className="w-[340px] bg-surface-container-low flex flex-col z-10 shrink-0 shadow-lg">
+                        <div className="flex items-center px-4 pt-4 pb-2 gap-4">
+                            <button
+                                onClick={() => setActiveTab('situations')}
+                                className={`text-sm font-bold uppercase tracking-wider transition-colors pb-2 border-b-2 ${activeTab === 'situations' ? 'text-primary border-primary' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+                            >
+                                <Activity className="w-4 h-4 inline mr-1" /> SITUATIONS
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('alliances')}
+                                className={`text-sm font-bold uppercase tracking-wider transition-colors pb-2 border-b-2 ${activeTab === 'alliances' ? 'text-primary border-primary' : 'text-slate-500 border-transparent hover:text-slate-300'}`}
+                            >
+                                <Shield className="w-4 h-4 inline mr-1" /> ALLIANCES
+                            </button>
+                        </div>
 
-                {/* Left Sidebar: Active Conflicts / Situations */}
-                <aside className={`transition-all duration-300 ease-in-out border-r border-slate-800 bg-slate-900/80 backdrop-blur-3xl flex flex-col z-10 shadow-[5px_0_30px_rgba(0,0,0,0.6)] ${isSidebarOpen ? 'w-96' : 'w-0 border-none overflow-hidden'}`}>
-
-                    {/* Tabs */}
-                    <div className="flex border-b border-slate-800">
-                        <button
-                            onClick={() => setActiveTab('situations')}
-                            className={`flex-1 py-3 text-sm font-semibold tracking-wider flex items-center justify-center gap-2 transition-colors ${activeTab === 'situations' ? 'text-emerald-400 border-b-2 border-emerald-400 bg-emerald-950/20' : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-300'}`}
-                        >
-                            <Activity className="w-4 h-4" /> SITUATIONS
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('alliances')}
-                            className={`flex-1 py-3 text-sm font-semibold tracking-wider flex items-center justify-center gap-2 transition-colors ${activeTab === 'alliances' ? 'text-blue-400 border-b-2 border-blue-400 bg-blue-950/20' : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-300'}`}
-                        >
-                            <Shield className="w-4 h-4" /> ALLIANCES
-                        </button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar">
-                        {activeTab === 'situations' ? (
-                            worldState?.situations?.length > 0 ? (
-                                worldState.situations.map((sit: any) => (
+                        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar">
+                            {activeTab === 'situations' ? (
+                                worldState?.situations?.map((sit: any) => (
                                     <div
                                         key={sit.id}
                                         onClick={() => setSelectedSituation(sit)}
-                                        className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 shrink-0 ${selectedSituation?.id === sit.id ? 'bg-slate-800/80 border-slate-600 shadow-[0_0_20px_rgba(0,0,0,0.4)]' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                                        className={`p-4 rounded-xl cursor-pointer transition-all duration-300 relative overflow-hidden flex flex-col gap-2 ${selectedSituation?.id === sit.id ? 'bg-surface-container-high' : 'bg-surface-container hover:bg-surface-container-high/60'}`}
                                     >
-                                        <div className={`absolute top-0 left-0 w-1 h-full ${sit.intensity_score >= 8 ? 'bg-red-500' : sit.intensity_score >= 5 ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
-                                        <h3 className="text-sm font-semibold text-slate-100 leading-snug">{sit.title}</h3>
-                                        <div className="flex justify-between items-center gap-2">
-                                            <span className="text-[10px] font-mono px-2 py-1 rounded flex-1 truncate bg-slate-900 border border-white/5 text-slate-400">{sit.type}</span>
-                                            <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded whitespace-nowrap ${sit.trend_direction?.toLowerCase()?.includes('escalat') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
-                                                {sit.trend_direction}
-                                            </span>
+                                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${sit.intensity_score >= 8 ? 'bg-error' : sit.intensity_score >= 5 ? 'bg-tertiary' : 'bg-secondary'}`} />
+                                        <div className="pl-2">
+                                            <h3 className="text-sm font-bold font-display text-on-surface leading-snug">{sit.title}</h3>
+                                            <div className="flex justify-between items-center gap-2 mt-2">
+                                                <span className="text-[10px] font-mono px-2 py-1 rounded bg-surface-container-low text-secondary-dim border border-outline-variant/30 flex-1 truncate">{sit.type}</span>
+                                                <span className={`text-[10px] uppercase font-bold tracking-wider font-mono px-2 py-1 rounded whitespace-nowrap ${sit.trend_direction?.toLowerCase()?.includes('escalat') ? 'text-error' : 'text-tertiary'}`}>
+                                                    {sit.trend_direction}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-sm text-slate-500 text-center py-8">No active situations detected.</div>
-                            )
-                        ) : (
-                            worldState?.alliances?.length > 0 ? (
-                                worldState.alliances.map((alliance: any) => {
-                                    const selectedIndex = selectedAlliances.findIndex(a => a.id === alliance.id);
-                                    const isSelected = selectedIndex !== -1;
-                                    const colorHex = isSelected ? ALLIANCE_COLORS[selectedIndex % ALLIANCE_COLORS.length] : null;
-
+                                worldState?.alliances?.map((alliance: any) => {
+                                    const isSelected = selectedAlliances.some(a => a.id === alliance.id);
                                     return (
-                                        <div
-                                            key={alliance.id}
-                                            onClick={() => toggleAllianceSelection(alliance)}
-                                            className={`group relative overflow-hidden rounded-lg p-4 transition-all duration-300 cursor-pointer flex flex-col gap-2.5 shrink-0 border ${isSelected ? 'border-transparent' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
-                                            style={isSelected ? {
-                                                backgroundColor: `${colorHex}15`, 
-                                                boxShadow: `0 0 0 2px ${colorHex}, 0 0 25px ${colorHex}30`
-                                            } : undefined}
-                                        >
-                                            <h3 className="text-sm font-semibold text-slate-100 leading-snug">{alliance.name}</h3>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-[10px] font-mono px-2 py-1 rounded flex-1 truncate bg-slate-900 border border-white/5 text-slate-400">
-                                                    {alliance.type} • Est. {alliance.established_year}
-                                                </span>
-                                                <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded whitespace-nowrap ${alliance.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
-                                                    {alliance.status}
-                                                </span>
+                                        <div key={alliance.id} className={`p-4 rounded-xl cursor-default transition-all duration-300 relative overflow-hidden ${isSelected ? 'bg-surface-container-high' : 'bg-surface-container hover:bg-surface-container-high/60'}`}>
+                                            <div className="flex border-b border-outline-variant/30 pb-3 mb-3 justify-between items-start">
+                                                <div>
+                                                    <h3 className="text-base font-bold font-display text-on-surface">{alliance.name}</h3>
+                                                    <span className="text-[10px] text-secondary font-mono tracking-wider uppercase mt-1 inline-block">{alliance.type}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => toggleAllianceSelection(alliance)}
+                                                    className={`px-3 py-1.5 rounded text-[10px] uppercase font-bold tracking-wider transition-colors ${isSelected ? 'bg-error text-surface-dim' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
+                                                >
+                                                    {isSelected ? 'Deselect' : 'Select'}
+                                                </button>
                                             </div>
-
-                                            <div className="pt-2 mt-1 border-t border-white/5 flex items-end justify-between gap-3">
-                                                <div className="flex flex-wrap gap-1.5 flex-1 items-center">
-                                                    {alliance.members && (expandedAlliances.includes(alliance.id) ? alliance.members : alliance.members.slice(0, 8)).map((member: any, i: number) => (
-                                                        <span key={i} className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">
-                                                            {member.name}
-                                                        </span>
+                                            <div className="my-3">
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {alliance.members?.slice(0, expandedAlliances.includes(alliance.id) ? undefined : 6).map((m: any, i: number) => (
+                                                        <span key={i} className="text-[10px] font-mono text-secondary-dim bg-surface-container-low border border-outline-variant/30 px-2 py-1 rounded">{m.name}</span>
                                                     ))}
-                                                    {alliance.members && alliance.members.length > 8 && !expandedAlliances.includes(alliance.id) && (
-                                                        <button 
-                                                            onClick={(e) => toggleExpandMembers(e, alliance.id)}
-                                                            className="text-[10px] font-mono font-semibold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 px-1.5 py-0.5 rounded transition-colors"
-                                                        >
-                                                            +{alliance.members.length - 8} more
-                                                        </button>
+                                                    {alliance.members?.length > 6 && !expandedAlliances.includes(alliance.id) && (
+                                                        <button onClick={(e) => toggleExpandMembers(e, alliance.id)} className="text-[10px] font-mono font-bold text-primary bg-primary/10 px-2 py-1 rounded hover:bg-primary/20 transition-colors">+{alliance.members.length - 6} more</button>
                                                     )}
-                                                    {alliance.members && alliance.members.length > 8 && expandedAlliances.includes(alliance.id) && (
-                                                        <button 
-                                                            onClick={(e) => toggleExpandMembers(e, alliance.id)}
-                                                            className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-600 px-1.5 py-0.5 rounded transition-colors"
-                                                        >
-                                                            Show less
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                <div className="relative group/btn flex-shrink-0">
-                                                    <button
-                                                        onClick={(e) => fetchInsight(e, alliance)}
-                                                        className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-rose-400 via-fuchsia-500 to-indigo-500 text-white shadow-[0_0_15px_rgba(217,70,239,0.4)] hover:shadow-[0_0_20px_rgba(217,70,239,0.6)] hover:scale-110 active:scale-95 transition-all"
-                                                    >
-                                                        <Sparkles className="w-3.5 h-3.5 fill-white" />
-                                                    </button>
-                                                    <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-900 border border-indigo-500/30 text-indigo-200 text-[10px] leading-snug rounded-lg shadow-xl opacity-0 group-hover/btn:opacity-100 pointer-events-none transition-all duration-200 translate-y-1 group-hover/btn:translate-y-0 text-center z-30">
-                                                        Generate a detailed AI strategic analysis for {alliance.name}
-                                                        <div className="absolute top-full right-6 border-[5px] border-transparent border-t-indigo-500/30"></div>
-                                                    </div>
                                                 </div>
                                             </div>
+                                            <button
+                                                onClick={(e) => fetchInsight(e, alliance)}
+                                                disabled={insightModal?.alliance?.id === alliance.id && insightModal?.loading}
+                                                className="w-full mt-2 py-2 rounded bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                            >
+                                                {insightModal?.alliance?.id === alliance.id && insightModal?.loading ? <RotateCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} AI Insights
+                                            </button>
+                                            
+                                            {insightModal?.alliance?.id === alliance.id && !insightModal?.loading && insightModal?.data && (
+                                                <div className="mt-3 p-3 bg-surface-container-low rounded-lg text-xs leading-relaxed text-secondary border-l-2 border-primary overflow-auto max-h-[250px] custom-scrollbar prose prose-invert prose-sm">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span className="text-[10px] uppercase tracking-widest font-bold text-primary">Strategic Insight</span>
+                                                        <button onClick={() => setInsightModal(null)} className="text-secondary hover:text-on-surface">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                    <ReactMarkdown>{insightModal.data}</ReactMarkdown>
+                                                </div>
+                                            )}
+                                            {insightModal?.alliance?.id === alliance.id && !insightModal?.loading && insightModal?.error && (
+                                                <div className="mt-3 p-3 bg-error/10 border border-error/30 rounded-lg text-xs text-error">
+                                                    {insightModal.error}
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })
-                            ) : (
-                                <div className="text-sm text-slate-500 text-center py-8 flex flex-col items-center gap-3">
-                                    <Shield className="w-8 h-8 opacity-20" />
-                                    No records found.
-                                </div>
-                            )
-                        )}
-                    </div>
-                </aside>
+                            )}
+                        </div>
+                    </aside>
 
-                {/* Center: Interactive World Map View */}
-                <section className="flex-1 relative bg-slate-950 flex flex-col p-4">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 z-0"></div>
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cartographer.png')] opacity-10 mix-blend-overlay z-0"></div>
-                    <div className="relative z-10 w-full h-full">
+                    <section className="flex-1 relative bg-surface-dim">
                         <WorldMap situations={worldState?.situations || []} selectedAlliances={selectedAlliances} allianceColors={ALLIANCE_COLORS} />
-                    </div>
-                </section>
+                    </section>
 
-                {/* Right Sidebar: Situation Detail View (Slide In) */}
-                <AnimatePresence>
-                    {selectedSituation && (
-                        <motion.aside
-                            initial={{ x: 400, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: 400, opacity: 0 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="absolute right-0 top-0 bottom-0 w-[400px] bg-slate-900/95 backdrop-blur-xl border-l border-slate-800 shadow-2xl flex flex-col z-20"
-                        >
-                            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/80">
-                                <span className="text-xs font-mono px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 shadow-inner">SITUATION DETAIL</span>
-                                <button onClick={() => setSelectedSituation(null)} className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar">
-                                <div className="space-y-4">
-                                    <h2 className="text-xl font-bold leading-snug drop-shadow-md">{selectedSituation.title}</h2>
-                                    
-                                    <div className="grid grid-cols-2 gap-3 mt-4">
-                                        <div className="bg-slate-800/40 border border-slate-700/50 p-2.5 rounded-lg flex flex-col gap-1">
-                                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Ontology Class</span>
-                                            <span className="text-xs text-slate-200 font-mono font-medium truncate" title={selectedSituation.type}>{selectedSituation.type}</span>
-                                        </div>
-                                        <div className="bg-slate-800/40 border border-slate-700/50 p-2.5 rounded-lg flex flex-col gap-1">
-                                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Risk Index</span>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`text-xs font-bold ${selectedSituation.intensity_score >= 8 ? 'text-red-400' : selectedSituation.intensity_score >= 5 ? 'text-amber-400' : 'text-blue-400'}`}>
-                                                    {selectedSituation.intensity_score} / 10
-                                                </span>
-                                                <span className="text-[9px] uppercase bg-white/5 px-1.5 py-0.5 rounded text-slate-300 border border-white/5">{selectedSituation.trend_direction}</span>
+                    <AnimatePresence>
+                        {selectedSituation && (
+                            <motion.aside
+                                initial={{ x: '100%', opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                exit={{ x: '100%', opacity: 0 }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="absolute right-0 top-0 h-full w-[400px] bg-surface-variant/60 backdrop-blur-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col z-20 font-sans"
+                            >
+                                <div className="h-14 border-b border-outline-variant/30 flex items-center justify-between px-4 shrink-0 bg-surface-dim/40">
+                                    <h2 className="font-bold text-sm uppercase tracking-widest text-secondary inline-flex items-center gap-2">
+                                        <Activity className="w-4 h-4" /> Situation Detail
+                                    </h2>
+                                    <button onClick={() => setSelectedSituation(null)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                
+                                <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar">
+                                    <div className="space-y-4">
+                                        <h2 className="text-2xl font-bold font-display leading-[1.1] text-on-surface">{selectedSituation.title}</h2>
+                                        
+                                        <div className="grid grid-cols-2 gap-3 mt-4">
+                                            <div className="bg-surface-container-low p-3 rounded-lg flex flex-col gap-1">
+                                                <span className="text-[10px] text-secondary font-mono tracking-widest uppercase font-bold">Ontology Class</span>
+                                                <span className="text-xs text-on-surface font-mono font-medium truncate" title={selectedSituation.type}>{selectedSituation.type}</span>
+                                            </div>
+                                            <div className="bg-surface-container-low p-3 rounded-lg flex flex-col gap-1">
+                                                <span className="text-[10px] text-secondary font-mono tracking-widest uppercase font-bold">Risk Index</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`text-sm font-bold ${selectedSituation.intensity_score >= 8 ? 'text-error' : selectedSituation.intensity_score >= 5 ? 'text-tertiary' : 'text-primary'}`}>
+                                                        {selectedSituation.intensity_score} / 10
+                                                    </span>
+                                                    <span className="text-[9px] uppercase bg-white/5 px-1.5 py-0.5 rounded text-on-surface-variant border border-outline-variant/30">{selectedSituation.trend_direction}</span>
+                                                </div>
+                                            </div>
+                                            <div className="bg-surface-container-low p-3 rounded-lg flex flex-col gap-1">
+                                                <span className="text-[10px] text-secondary font-mono tracking-widest uppercase font-bold">Lifecycle</span>
+                                                <span className="text-xs font-semibold capitalize text-on-surface">{selectedSituation.status}</span>
+                                            </div>
+                                            <div className="bg-surface-container-low p-3 rounded-lg flex flex-col gap-1">
+                                                <span className="text-[10px] text-secondary font-mono tracking-widest uppercase font-bold">Vector</span>
+                                                <div className="text-xs font-medium">
+                                                    {selectedSituation.source_lat != null && selectedSituation.target_lat != null ? (
+                                                        <span className="flex items-center gap-1.5 text-warning"><ArrowRight className="w-3.5 h-3.5" /> Directed Action</span>
+                                                    ) : (
+                                                        <span className="flex items-center gap-1.5 text-primary"><MapPin className="w-3.5 h-3.5" /> Regional Focus</span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="bg-slate-800/40 border border-slate-700/50 p-2.5 rounded-lg flex flex-col gap-1">
-                                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Lifecycle Status</span>
-                                            <span className="text-xs font-semibold capitalize text-slate-300">{selectedSituation.status}</span>
-                                        </div>
-                                        <div className="bg-slate-800/40 border border-slate-700/50 p-2.5 rounded-lg flex flex-col gap-1">
-                                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Directionality</span>
-                                            <div className="text-xs font-medium">
-                                                {selectedSituation.source_lat != null && selectedSituation.target_lat != null ? (
-                                                    <span className="flex items-center gap-1.5 text-amber-400/90"><ArrowRight className="w-3.5 h-3.5" /> Directed Action</span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1.5 text-blue-400/90"><MapPin className="w-3.5 h-3.5" /> Regional Focus</span>
-                                                )}
+
+                                        {selectedSituation.actors && selectedSituation.actors.length > 0 && (
+                                            <div className="mt-2 text-xs flex flex-wrap gap-2 items-center">
+                                                <span className="text-[10px] text-secondary font-mono tracking-widest uppercase font-bold mr-1">Actors:</span>
+                                                {selectedSituation.actors.map((actor: any, i: number) => (
+                                                    <span key={i} className="text-[10px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded">
+                                                        {actor.name}
+                                                    </span>
+                                                ))}
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
 
-                                    {selectedSituation.actors && selectedSituation.actors.length > 0 && (
-                                        <div className="mt-2 text-xs flex flex-wrap gap-2 items-center">
-                                            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mr-1">Actors:</span>
-                                            {selectedSituation.actors.map((actor: any, i: number) => (
-                                                <span key={i} className="text-[10px] font-mono text-slate-300 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded">
-                                                    {actor.name}
-                                                </span>
-                                            ))}
+                                    <div className="space-y-2">
+                                        <h4 className="text-xs font-bold text-secondary uppercase tracking-widest flex items-center gap-2"><Globe className="w-3 h-3" /> Core Summary</h4>
+                                        <p className="text-sm text-on-surface-variant leading-relaxed">{selectedSituation.summary}</p>
+                                    </div>
+
+                                    {selectedSituation.causes && (
+                                        <div className="space-y-2">
+                                            <h4 className="text-xs font-bold text-secondary uppercase tracking-widest flex items-center gap-2 px-1"><AlertTriangle className="w-3 h-3" /> Root Causes</h4>
+                                            <div className="p-4 rounded-xl bg-surface-container border border-outline-variant/30">
+                                                <p className="text-sm text-on-surface-variant leading-relaxed font-serif italic">{selectedSituation.causes}</p>
+                                            </div>
                                         </div>
                                     )}
-                                </div>
 
-                                <div className="space-y-2">
-                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2"><Globe className="w-3 h-3" /> Core Summary</h4>
-                                    <p className="text-sm text-slate-300 leading-relaxed drop-shadow-sm">{selectedSituation.summary}</p>
-                                </div>
+                                    {selectedSituation.trajectory && (
+                                        <div className="space-y-2 p-4 rounded-xl bg-primary-container/30 border border-primary-container/50 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-primary/10 blur-2xl rounded-full"></div>
+                                            <h4 className="text-xs font-bold text-primary uppercase tracking-widest flex items-center gap-2 mb-2 relative z-10">
+                                                <ChevronRight className="w-3 h-3" /> Future Trajectory
+                                            </h4>
+                                            <p className="text-sm text-on-surface leading-relaxed relative z-10 font-medium">{selectedSituation.trajectory}</p>
+                                        </div>
+                                    )}
 
-                                {selectedSituation.causes && (
-                                    <div className="space-y-2">
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1"><AlertTriangle className="w-3 h-3" /> Root Causes</h4>
-                                        <div className="p-4 rounded-xl bg-white/5 border border-white/5 shadow-inner">
-                                            <p className="text-sm text-slate-300 leading-relaxed font-serif italic opacity-90">{selectedSituation.causes}</p>
+                                    <div className="mt-auto pt-6 border-t border-outline-variant/30">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-secondary tracking-widest uppercase text-[10px] font-bold">Confidence</span>
+                                            <span className={`font-mono px-2 py-0.5 rounded text-[10px] tracking-widest uppercase ${selectedSituation.confidence_level === 'high' ? 'bg-primary/20 text-primary' : 'bg-tertiary/20 text-tertiary'}`}>{selectedSituation.confidence_level}</span>
+                                        </div>
+                                        <div className="mt-3 text-right">
+                                            <span className="text-secondary/50 font-mono text-[9px] uppercase tracking-widest">SYNTHESIZED BY GEMINI 2.5 PRO</span>
                                         </div>
                                     </div>
-                                )}
-
-                                {selectedSituation.trajectory && (
-                                    <div className="space-y-2 p-4 rounded-xl bg-indigo-950/30 border border-indigo-900/50 shadow-lg relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-500/10 blur-2xl rounded-full"></div>
-                                        <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2 mb-2 relative z-10">
-                                            <ChevronRight className="w-3 h-3" /> Future Trajectory
-                                        </h4>
-                                        <p className="text-sm text-indigo-200/90 leading-relaxed relative z-10 font-medium">{selectedSituation.trajectory}</p>
-                                    </div>
-                                )}
-
-                                <div className="mt-auto pt-6 border-t border-slate-800">
-                                    <div className="flex items-center justify-between text-xs">
-                                        <span className="text-slate-500">Confidence Model</span>
-                                        <span className={`font-mono px-2 py-0.5 rounded text-[10px] tracking-widest uppercase ${selectedSituation.confidence_level === 'high' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-500'}`}>{selectedSituation.confidence_level}</span>
-                                    </div>
-                                    <div className="mt-3 text-right">
-                                        <span className="text-slate-600 font-mono text-[9px] uppercase tracking-widest">SYNTHESIZED BY GEMINI 2.5 PRO</span>
-                                    </div>
                                 </div>
-                            </div>
-                        </motion.aside>
-                    )}
-                </AnimatePresence>
-
-                {/* Alliance Insight Modal (Slide In Over Map) */}
-                <AnimatePresence>
-                    {insightModal && (
-                        <motion.aside
-                            initial={{ y: 800, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: 800, opacity: 0 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="absolute left-1/2 bottom-8 -translate-x-1/2 w-full max-w-3xl max-h-[80vh] bg-slate-900/95 backdrop-blur-2xl border border-indigo-500/30 shadow-[0_0_50px_rgba(79,70,229,0.2)] rounded-2xl flex flex-col z-30 overflow-hidden"
-                            style={{ x: '-50%' }}
-                        >
-                            <div className="flex items-center justify-between p-4 border-b border-indigo-900/50 bg-indigo-950/30">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xs font-mono px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-inner flex items-center gap-2">
-                                        <Activity className="w-3 h-3 animate-pulse" /> AI STRATEGIC INSIGHT
-                                    </span>
-                                    <span className="text-sm font-bold text-slate-200">{insightModal.alliance.name}</span>
-                                </div>
-                                <button onClick={() => setInsightModal(null)} className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar relative">
-                                {insightModal.loading ? (
-                                    <div className="flex flex-col items-center justify-center py-12 gap-4">
-                                        <RotateCw className="w-8 h-8 text-indigo-500 animate-spin" />
-                                        <p className="text-indigo-300 font-mono text-sm animate-pulse tracking-widest">GENERATING GEOPOLITICAL ANALYSIS...</p>
-                                    </div>
-                                ) : insightModal.error ? (
-                                    <div className="p-4 rounded-xl bg-red-950/30 border border-red-900/50 text-red-400 text-sm">
-                                        {insightModal.error}
-                                    </div>
-                                ) : (
-                                    <div className="space-y-6 text-slate-300 text-sm leading-relaxed prose prose-sm prose-invert prose-indigo max-w-none">
-                                        <ReactMarkdown>
-                                            {insightModal.data || ''}
-                                        </ReactMarkdown>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="p-4 border-t border-indigo-900/50 bg-slate-950/80 flex items-center justify-between text-xs">
-                                <span className="text-slate-500 flex items-center gap-2">
-                                    <Globe className="w-4 h-4" /> Cached Analysis (24h TTL)
-                                </span>
-                                <span className="text-indigo-500/70 font-mono text-[9px] uppercase tracking-widest drop-shadow-md">POWERED BY GEMINI 2.5 FLASH</span>
-                            </div>
-                        </motion.aside>
-                    )}
-                </AnimatePresence>
-
-                <AIAssistantPanel worldState={worldState} />
-
-            </main>
+                            </motion.aside>
+                        )}
+                    </AnimatePresence>
+                    <AIAssistantPanel worldState={worldState} />
+                </main>
+            </div>
         </div>
     );
 }
