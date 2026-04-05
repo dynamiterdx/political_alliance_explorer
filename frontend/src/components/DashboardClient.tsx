@@ -280,15 +280,19 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                                         </span>
                                                     )}
                                                 </div>
-                                                <button
-                                                    onClick={(e) => fetchInsight(e, alliance)}
-                                                    className="group relative shrink-0 px-4 py-1.5 bg-indigo-950/30 border border-indigo-500/40 text-indigo-400 hover:text-white transition-all flex items-center justify-center gap-2 overflow-hidden"
-                                                    title="AI Geopolitical Insights"
-                                                >
-                                                    <div className="absolute inset-0 bg-indigo-600 w-0 group-hover:w-full transition-all duration-300 ease-out z-0"></div>
-                                                    <Activity className="w-3.5 h-3.5 relative z-10 group-hover:animate-pulse" />
-                                                    <span className="font-mono text-[10px] uppercase tracking-[0.15em] relative z-10 font-bold mt-[1px]">ANALYZE</span>
-                                                </button>
+                                                <div className="relative group/btn flex-shrink-0">
+                                                    <button
+                                                        onClick={(e) => fetchInsight(e, alliance)}
+                                                        className="flex items-center justify-center gap-1.5 px-2 py-1 rounded-full bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95 transition-all shadow-[0_0_10px_rgba(79,70,229,0.3)] hover:shadow-[0_0_15px_rgba(79,70,229,0.5)]"
+                                                    >
+                                                        <Activity className="w-3 h-3" />
+                                                        <span className="text-[9px] font-bold uppercase tracking-wider">AI Insights</span>
+                                                    </button>
+                                                    <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-900 border border-indigo-500/30 text-indigo-200 text-[10px] leading-snug rounded-lg shadow-xl opacity-0 group-hover/btn:opacity-100 pointer-events-none transition-all duration-200 translate-y-1 group-hover/btn:translate-y-0 text-center z-30">
+                                                        Generate a detailed AI strategic analysis for {alliance.name}
+                                                        <div className="absolute top-full right-6 border-[5px] border-transparent border-t-indigo-500/30"></div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     );
