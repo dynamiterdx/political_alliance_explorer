@@ -261,36 +261,33 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                                 <span className="text-[10px] font-mono px-2 py-1 rounded flex-1 truncate bg-slate-900 border border-white/5 text-slate-400">
                                                     {alliance.type} • Est. {alliance.established_year}
                                                 </span>
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={(e) => fetchInsight(e, alliance)}
-                                                        className="text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/40 transition-colors flex items-center gap-1 whitespace-nowrap"
-                                                        title="AI Geopolitical Insights"
-                                                    >
-                                                        <Activity className="w-3 h-3" /> Insights
-                                                    </button>
-                                                    <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded whitespace-nowrap ${alliance.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
-                                                        {alliance.status}
-                                                    </span>
-                                                </div>
+                                                <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded whitespace-nowrap ${alliance.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'}`}>
+                                                    {alliance.status}
+                                                </span>
                                             </div>
                                             <h3 className="text-sm font-semibold text-slate-100 leading-snug">{alliance.name}</h3>
 
-                                            {/* Display Members */}
-                                            {alliance.members && alliance.members.length > 0 && (
-                                                <div className="pt-2 mt-1 border-t border-white/5 flex flex-wrap gap-1.5">
-                                                    {alliance.members.slice(0, 10).map((member: any, i: number) => (
+                                            <div className="pt-2 mt-1 border-t border-white/5 flex items-end justify-between gap-3">
+                                                <div className="flex flex-wrap gap-1.5 flex-1">
+                                                    {alliance.members && alliance.members.slice(0, 8).map((member: any, i: number) => (
                                                         <span key={i} className="text-[10px] font-mono text-slate-300 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">
                                                             {member.name}
                                                         </span>
                                                     ))}
-                                                    {alliance.members.length > 10 && (
+                                                    {alliance.members && alliance.members.length > 8 && (
                                                         <span className="text-[10px] font-mono text-slate-500 bg-slate-800/50 border border-slate-700/50 px-1.5 py-0.5 rounded">
-                                                            +{alliance.members.length - 10} more
+                                                            +{alliance.members.length - 8} more
                                                         </span>
                                                     )}
                                                 </div>
-                                            )}
+                                                <button
+                                                    onClick={(e) => fetchInsight(e, alliance)}
+                                                    className="text-xs font-semibold px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm shadow-indigo-900/50 hover:bg-indigo-500 hover:shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 whitespace-nowrap shrink-0 max-h-8"
+                                                    title="AI Geopolitical Insights"
+                                                >
+                                                    <Activity className="w-3.5 h-3.5" /> Insights
+                                                </button>
+                                            </div>
                                         </div>
                                     );
                                 })
