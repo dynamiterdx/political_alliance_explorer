@@ -282,10 +282,12 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                                 </div>
                                                 <button
                                                     onClick={(e) => fetchInsight(e, alliance)}
-                                                    className="text-xs font-semibold px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm shadow-indigo-900/50 hover:bg-indigo-500 hover:shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 whitespace-nowrap shrink-0 max-h-8"
+                                                    className="group relative shrink-0 px-4 py-1.5 bg-indigo-950/30 border border-indigo-500/40 text-indigo-400 hover:text-white transition-all flex items-center justify-center gap-2 overflow-hidden"
                                                     title="AI Geopolitical Insights"
                                                 >
-                                                    <Activity className="w-3.5 h-3.5" /> Insights
+                                                    <div className="absolute inset-0 bg-indigo-600 w-0 group-hover:w-full transition-all duration-300 ease-out z-0"></div>
+                                                    <Activity className="w-3.5 h-3.5 relative z-10 group-hover:animate-pulse" />
+                                                    <span className="font-mono text-[10px] uppercase tracking-[0.15em] relative z-10 font-bold mt-[1px]">ANALYZE</span>
                                                 </button>
                                             </div>
                                         </div>
