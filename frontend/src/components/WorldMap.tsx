@@ -39,61 +39,82 @@ export const WorldMap = memo(({ situations, selectedAlliances, allianceColors }:
             >
                 <ZoomableGroup center={[0, 20]} zoom={1} minZoom={1} maxZoom={8}>
                     <Geographies geography={geoUrl}>
-                        {({ geographies }) =>
-                            geographies.map((geo) => {
-                                // Find if this country belongs to any of the currently selected alliances
-                                let membershipColor = null;
+                        {({ geographies, projection }) => (
+                            <>
+                                {geographies.map((geo) => {
+                                    // Find if this country belongs to any of the currently selected alliances
+                                    let membershipColor = null;
 
-                                if (selectedAlliances && allianceColors) {
-                                    for (let i = 0; i < selectedAlliances.length; i++) {
-                                        const isMember = selectedAlliances[i]?.members?.some((member: any) =>
-                                            geo.properties.name.toLowerCase().includes(member.name.toLowerCase()) ||
-                                            member.name.toLowerCase().includes(geo.properties.name.toLowerCase())
-                                        );
-                                        if (isMember) {
-                                            membershipColor = allianceColors[i % allianceColors.length];
-                                            break; // Once claimed by an alliance, stop checking (could blend, but first-match is cleaner for now)
+                                    if (selectedAlliances && allianceColors) {
+                                        for (let i = 0; i < selectedAlliances.length; i++) {
+                                            const isMember = selectedAlliances[i]?.members?.some((member: any) =>
+                                                geo.properties.name.toLowerCase().includes(member.name.toLowerCase()) ||
+                                                member.name.toLowerCase().includes(geo.properties.name.toLowerCase())
+                                            );
+                                            if (isMember) {
+                                                membershipColor = allianceColors[i % allianceColors.length];
+                                                break; // Once claimed by an alliance, stop checking
+                                            }
                                         }
                                     }
-                                }
 
-                                return (
-                                    <Geography
-                                        key={geo.rsmKey}
-                                        geography={geo}
-                                        fill={membershipColor ? `${membershipColor}33` : "#1e293b"} // 33 is 20% opacity in hex
-                                        stroke={membershipColor ? `${membershipColor}80` : "#334155"} // 80 is 50% opacity
-                                        strokeWidth={0.5}
-                                        style={{
-                                            default: { outline: "none", transition: "all 250ms" },
-                                            hover: { fill: "#334155", outline: "none", transition: "all 250ms" },
-                                            pressed: { outline: "none" },
-                                        }}
-                                    />
-                                );
-                            })
-                        }
+                                    return (
+                                        <Geography
+                                            key={geo.rsmKey}
+                                            geography={geo}
+                                            fill={membershipColor ? `${membershipColor}33` : "#1e293b"} // 33 is 20% opacity in hex
+                                            stroke={membershipColor ? `${membershipColor}80` : "#334155"} // 80 is 50% opacity
+                                            strokeWidth={0.5}
+                                            style={{
+                                                default: { outline: "none", transition: "all 250ms" },
+                                                hover: { fill: "#334155", outline: "none", transition: "all 250ms" },
+                                                pressed: { outline: "none" },
+                                            }}
+                                        />
+                                    );
+                                })}
+
+                                {/* Render Custom 2D Bezier Lines for Directional Situations */}
+                                {situations?.filter(sit => sit.source_lat != null && sit.target_lat != null).map((sit) => {
+                                    const color = sit.intensity_score >= 8 ? '#ef4444' : sit.intensity_score >= 5 ? '#f59e0b' : '#3b82f6';
+                                    
+                                    // Project lat/lng to local SVG x,y coordinates
+                                    const sourcePos = projection([sit.source_lng, sit.source_lat]);
+                                    const targetPos = projection([sit.target_lng, sit.target_lat]);
+                                    
+                                    if (!sourcePos || !targetPos) return null;
+
+                                    // Create a smooth 2D curve between the points
+                                    const dx = targetPos[0] - sourcePos[0];
+                                    const dy = targetPos[1] - sourcePos[1];
+                                    const midX = sourcePos[0] + dx / 2;
+                                    const midY = sourcePos[1] + dy / 2;
+                                    
+                                    // Offset the control point perpendicular to the line for the curve arc
+                                    // We bend the line up (negative dy) or down (positive dy)
+                                    const bendFactor = 0.25; 
+                                    const cpX = midX - dy * bendFactor;
+                                    const cpY = midY + dx * bendFactor;
+
+                                    return (
+                                        <path
+                                            key={`custom-line-${sit.id}`}
+                                            d={`M ${sourcePos[0]},${sourcePos[1]} Q ${cpX},${cpY} ${targetPos[0]},${targetPos[1]}`}
+                                            fill="none"
+                                            stroke={color}
+                                            strokeWidth={1.5}
+                                            strokeLinecap="round"
+                                            className="opacity-60"
+                                            style={{
+                                                strokeDasharray: "4 4",
+                                                animation: "dash 10s linear infinite"
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </>
+                        )}
                     </Geographies>
-
-                    {/* Render Lines for Directional Situations */}
-                    {situations?.filter(sit => sit.source_lat != null && sit.target_lat != null).map((sit) => {
-                        const color = sit.intensity_score >= 8 ? '#ef4444' : sit.intensity_score >= 5 ? '#f59e0b' : '#3b82f6';
-                        return (
-                            <Line
-                                key={`line-${sit.id}`}
-                                from={[sit.source_lng, sit.source_lat]}
-                                to={[sit.target_lng, sit.target_lat]}
-                                stroke={color}
-                                strokeWidth={1.5}
-                                strokeLinecap="round"
-                                className="opacity-50"
-                                style={{
-                                    strokeDasharray: "4 4",
-                                    animation: "dash 10s linear infinite"
-                                }}
-                            />
-                        );
-                    })}
 
                     {/* Render Action Markers for each active Situation */}
                     {situations?.filter(sit => sit.latitude != null && sit.longitude != null).map((sit) => {
