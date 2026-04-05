@@ -228,7 +228,7 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                     <div
                                         key={sit.id}
                                         onClick={() => setSelectedSituation(sit)}
-                                        className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 ${selectedSituation?.id === sit.id ? 'bg-slate-800/80 border-slate-600 shadow-[0_0_20px_rgba(0,0,0,0.4)]' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                                        className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 shrink-0 ${selectedSituation?.id === sit.id ? 'bg-slate-800/80 border-slate-600 shadow-[0_0_20px_rgba(0,0,0,0.4)]' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
                                     >
                                         <div className={`absolute top-0 left-0 w-1 h-full ${sit.intensity_score >= 8 ? 'bg-red-500' : sit.intensity_score >= 5 ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
                                         <div className="flex justify-between items-center gap-2">
@@ -254,7 +254,7 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                         <div
                                             key={alliance.id}
                                             onClick={() => toggleAllianceSelection(alliance)}
-                                            className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 ${isSelected ? 'bg-slate-800/80 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                                            className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 shrink-0 ${isSelected ? 'bg-slate-800/80 shadow-lg' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
                                             style={{ borderColor: isSelected ? colorHex! : undefined }}
                                         >
                                             <div className="flex justify-between items-center gap-2">
