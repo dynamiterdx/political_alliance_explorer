@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 const WorldMap = dynamic(() => import('@/components/WorldMap').then(mod => mod.WorldMap), { ssr: false });
 import { AIAssistantPanel } from '@/components/AIAssistantPanel';
-import { Activity, Globe, Shield, History, RotateCw, ChevronRight, X, AlertTriangle } from 'lucide-react';
+import { Activity, Globe, Shield, History, RotateCw, ChevronRight, X, AlertTriangle, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
@@ -283,10 +283,9 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                                 <div className="relative group/btn flex-shrink-0">
                                                     <button
                                                         onClick={(e) => fetchInsight(e, alliance)}
-                                                        className="flex items-center justify-center gap-1.5 px-2 py-1 rounded-full bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95 transition-all shadow-[0_0_10px_rgba(79,70,229,0.3)] hover:shadow-[0_0_15px_rgba(79,70,229,0.5)]"
+                                                        className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-rose-400 via-fuchsia-500 to-indigo-500 text-white shadow-[0_0_15px_rgba(217,70,239,0.4)] hover:shadow-[0_0_20px_rgba(217,70,239,0.6)] hover:scale-110 active:scale-95 transition-all"
                                                     >
-                                                        <Activity className="w-3 h-3" />
-                                                        <span className="text-[9px] font-bold uppercase tracking-wider">AI Insights</span>
+                                                        <Sparkles className="w-3.5 h-3.5 fill-white" />
                                                     </button>
                                                     <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-900 border border-indigo-500/30 text-indigo-200 text-[10px] leading-snug rounded-lg shadow-xl opacity-0 group-hover/btn:opacity-100 pointer-events-none transition-all duration-200 translate-y-1 group-hover/btn:translate-y-0 text-center z-30">
                                                         Generate a detailed AI strategic analysis for {alliance.name}
