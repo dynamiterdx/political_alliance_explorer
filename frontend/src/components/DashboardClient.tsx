@@ -128,7 +128,14 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
             {/* Top Navigation / Ticker */}
             <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between h-14 shadow-xl">
                 <div className="flex items-center gap-4 px-6 h-full border-r border-slate-800">
-                    <Globe className="w-5 h-5 text-emerald-500" />
+                    <button
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        className="p-1.5 -ml-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                        title="Toggle Sidebar"
+                    >
+                        <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${isSidebarOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    <Globe className="w-5 h-5 text-emerald-500 hidden md:block" />
                     <h1 className="text-xl font-bold tracking-tight text-white hidden md:block">GeoSight</h1>
 
                     {/* Year Navigation */}
@@ -189,13 +196,6 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                             <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                         </button>
                     )}
-                    <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors bg-slate-800/50 border border-slate-700"
-                        title="Toggle Sidebar"
-                    >
-                        <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${isSidebarOpen ? 'rotate-180' : ''}`} />
-                    </button>
                 </div>
             </header>
 
@@ -228,17 +228,16 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
                                     <div
                                         key={sit.id}
                                         onClick={() => setSelectedSituation(sit)}
-                                        className={`group relative overflow-hidden rounded-xl border p-4 transition-all cursor-pointer ${selectedSituation?.id === sit.id ? 'bg-slate-800/80 border-slate-600 shadow-[0_0_20px_rgba(0,0,0,0.4)]' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
+                                        className={`group relative overflow-hidden rounded-lg border p-4 transition-all cursor-pointer flex flex-col gap-2.5 ${selectedSituation?.id === sit.id ? 'bg-slate-800/80 border-slate-600 shadow-[0_0_20px_rgba(0,0,0,0.4)]' : 'border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10'}`}
                                     >
                                         <div className={`absolute top-0 left-0 w-1 h-full ${sit.intensity_score >= 8 ? 'bg-red-500' : sit.intensity_score >= 5 ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-xs font-mono px-2 py-1 rounded bg-slate-950/80 text-slate-300 border border-white/5">{sit.type}</span>
-                                            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full ${sit.trend_direction?.toLowerCase()?.includes('escalat') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
+                                        <div className="flex justify-between items-center gap-2">
+                                            <span className="text-[10px] font-mono px-2 py-1 rounded flex-1 truncate bg-slate-900 border border-white/5 text-slate-400">{sit.type}</span>
+                                            <span className={`text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded whitespace-nowrap ${sit.trend_direction?.toLowerCase()?.includes('escalat') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
                                                 {sit.trend_direction}
                                             </span>
                                         </div>
-                                        <h3 className="font-semibold text-slate-100 mt-2 line-clamp-2 leading-relaxed">{sit.title}</h3>
-                                        <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">{sit.summary}</p>
+                                        <h3 className="text-sm font-semibold text-slate-100 leading-snug">{sit.title}</h3>
                                     </div>
                                 ))
                             ) : (
