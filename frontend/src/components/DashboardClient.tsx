@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { WorldMap } from '@/components/WorldMap';
+import dynamic from 'next/dynamic';
+const WorldMap = dynamic(() => import('@/components/WorldMap').then(mod => mod.WorldMap), { ssr: false });
 import { AIAssistantPanel } from '@/components/AIAssistantPanel';
 import { Activity, Globe, Shield, History, RotateCw, ChevronRight, X, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
