@@ -8,6 +8,7 @@ import { AIAssistantPanel } from '@/components/AIAssistantPanel';
 import { Activity, Globe, Shield, History, RotateCw, ChevronRight, X, AlertTriangle, Sparkles, ArrowRight, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import Link from 'next/link';
 
 export default function DashboardClient({ initialWorldState }: { initialWorldState: any }) {
     const router = useRouter();
@@ -138,11 +139,15 @@ export default function DashboardClient({ initialWorldState }: { initialWorldSta
 
             <div className="flex flex-col w-full h-full">
                 <header className="h-14 bg-surface-container-low flex items-center justify-between px-6 z-20 shrink-0">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
                             <Globe className="w-5 h-5 text-primary" />
                             <h1 className="text-lg font-bold tracking-widest font-display uppercase">GeoSight</h1>
                         </div>
+                        <nav className="hidden md:flex items-center gap-1 font-mono text-xs uppercase tracking-widest">
+                            <Link href="/" className="px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 transition-colors">Map View</Link>
+                            <Link href="/feed" className="px-3 py-1.5 rounded-full text-secondary hover:text-on-surface hover:bg-surface-container transition-colors">Intelligence Feed</Link>
+                        </nav>
                         <select
                             className="bg-surface-container text-sm rounded-md px-2 py-1 outline-none border border-outline-variant/30"
                             value={selectedYear}
